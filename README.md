@@ -16,6 +16,7 @@ Roadmap:
 - [ ] HYBRID SEARCH
 - [ ] Update table items
 - [ ] Modify table schema 
+- [ ] Compaction strategies
 - [ ] Provide embedding functions to Lance
 
 ## Installation
