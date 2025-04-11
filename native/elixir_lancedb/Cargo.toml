@@ -1,0 +1,21 @@
+[package]
+name = "elixir_lancedb"
+version = "0.1.0"
+authors = []
+edition = "2021"
+
+[lib]
+name = "elixir_lancedb"
+crate-type = ["cdylib"]
+
+[dependencies]
+arrow-array = "54.1"
+arrow-data = "54.1"
+arrow-ipc = "54.1"
+arrow-ord = "54.1"
+arrow-schema = "54.1"
+arrow-arith = "54.1"
+arrow-cast = "54.1"
+rustler = "0.36.1"
+lancedb = "0.18.2"
+tokio = "1.44.2"

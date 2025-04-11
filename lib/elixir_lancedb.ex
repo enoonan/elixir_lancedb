@@ -1,0 +1,2 @@
+defmodule ElixirLanceDB do
+end
