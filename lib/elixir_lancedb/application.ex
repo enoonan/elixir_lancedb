@@ -14,10 +14,7 @@ defmodule ElixirLanceDB.Application do
       {NodeJS.Supervisor,
        [pool_size: 4]
        |> Keyword.merge(args |> Keyword.get(:nodejs_opts, []))
-       |> Keyword.put(:path, "#{:code.priv_dir(:elixir_lancedb)}/lance_js")},
-      {ElixirLanceDB.Server, data_dir: data_dir},
-      {Registry, name: ElixirLanceDB.Table.TableRegistry, keys: :unique, members: :auto},
-      {DynamicSupervisor, name: ElixirLanceDB.Table.TableSupervisor, strategy: :one_for_one}
+       |> Keyword.put(:path, "#{:code.priv_dir(:elixir_lancedb)}/lance_js")}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
