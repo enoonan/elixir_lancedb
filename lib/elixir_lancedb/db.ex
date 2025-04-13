@@ -9,7 +9,7 @@ defmodule ElixirLanceDB.DB do
     Caller.call("createTable", [table_name, data])
   end
 
-  def create_empty_table(table_name, schema) when is_struct(schema, Schema) do
+  def create_empty_table(table_name, %Schema{} = schema) do
     Caller.call("createEmptyTable", [table_name, schema])
   end
 

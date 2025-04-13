@@ -16,7 +16,7 @@ async function dropTable(uri, table) {
   return await db.dropTable(table);
 }
 
-async function createTable(uri, table, data, opts = { mode: "overwrite" }) {
+async function createTable(uri, table, data, opts = { existOk: true }) {
   const db = await lancedb.connect(uri);
   return await db.createTable(table, data, opts);
 }
@@ -24,11 +24,11 @@ async function createTable(uri, table, data, opts = { mode: "overwrite" }) {
 async function createEmptyTable(
   uri,
   table,
-  schema,
+  schemaCfg,
   opts = { mode: "overwrite" }
 ) {
-  schema = schemaUtil.fieldConfigsToSchema(schema.fields);
   const db = await lancedb.connect(uri);
+  schema = schemaUtil.fieldConfigsToSchema(schemaCfg.fields);
   return await db.createEmptyTable(table, schema, opts);
 }
 

@@ -31,6 +31,14 @@ defmodule ElixirLanceDB.Schema.FieldTypes do
           }
   end
 
+  defmodule Float do
+    defstruct [:precision]
+
+    @type t() :: %__MODULE__{
+            precision: integer()
+          }
+  end
+
   defmodule Float32 do
     defstruct []
   end
@@ -52,8 +60,8 @@ defimpl Jason.Encoder,
   for: ElixirLanceDB.Schema.FieldTypes.FixedSizeList do
   alias ElixirLanceDB.Schema.FieldTypes.FixedSizeList
 
-  def encode(%FixedSizeList{} = val, opts) do
-    %{type: :fixed_size_list, child: val.child, dimension: val.dimension}
+  def encode(%FixedSizeList{child: child, dimension: dimension}, opts) do
+    %{type: :fixed_size_list, child: child, dimension: dimension}
     |> Jason.Encode.map(opts)
   end
 end
@@ -72,6 +80,15 @@ defimpl Jason.Encoder,
 
   def encode(%Float32{} = _, opts) do
     %{type: :float32} |> Jason.Encode.map(opts)
+  end
+end
+
+defimpl Jason.Encoder,
+  for: ElixirLanceDB.Schema.FieldTypes.Float do
+  alias ElixirLanceDB.Schema.FieldTypes.Float
+
+  def encode(%Float{precision: precision} = _, opts) do
+    %{type: :float32, precision: precision} |> Jason.Encode.map(opts)
   end
 end
 
