@@ -31,3 +31,5 @@ elixir_lancedb-*.tar
 .elixir_ls
 
 data
+
+scratch.*
