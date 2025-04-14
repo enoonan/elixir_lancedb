@@ -33,7 +33,7 @@ Since LanceDB is written in Rust, Phase 2 will be to connect directly to Lance u
 
 Roadmap:
 
-- [ ] Return a DB Connection from LanceDB to Elixir
+- [x] Return a DB Connection from LanceDB to Elixir
 - [ ] List DB tables
 - [ ] Create DB table from data
 - [ ] Drop DB tables
