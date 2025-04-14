@@ -25,10 +25,6 @@ impl<'a> Encoder for DBResource {
 //     }
 // }
 
-/// Wrapper for BEAM reference terms.
-#[derive(PartialEq, Eq, Clone, Copy)]
-pub struct Reference<'a>(Term<'a>);
-
 #[rustler::nif]
 fn connect(uri: String) -> ResourceArc<DBResource> {
     return get_connection(uri).unwrap().into();
