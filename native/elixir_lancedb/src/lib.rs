@@ -18,7 +18,6 @@ fn get_runtime() -> &'static Runtime {
     })
 }
 
-#[derive(Clone)]
 struct DbConnResource(Arc<Mutex<Connection>>);
 
 #[rustler::nif]
