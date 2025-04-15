@@ -33,8 +33,8 @@ Since LanceDB is written in Rust, Phase 2 will be to connect directly to Lance u
 
 Roadmap:
 
-- [x] Return a DB Connection from LanceDB to Elixir
-- [ ] List DB tables
+- [X] Return a DB Connection from LanceDB to Elixir
+- [X] List DB tables
 - [ ] Create DB table from data
 - [ ] Drop DB tables
 - [ ] Manage connections using a pool - maybe just for writes
@@ -51,6 +51,8 @@ Roadmap:
 - [ ] Provide embedding functions to Lance directly
 
 ... and ideally as much other functionality as LanceDB Provides.
+
+Having successfully checked off our first couple roadmap items, to the best of my knowledge this is the first time a reference to an open Lance database has been shared to the BEAM. Neat!
 
 <!-- ## Installation -->
 
