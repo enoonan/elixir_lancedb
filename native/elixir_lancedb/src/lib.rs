@@ -20,7 +20,7 @@ fn get_runtime() -> &'static Runtime {
 
 struct DbConnResource(Arc<Mutex<Connection>>);
 
-#[rustler::nif]
+#[rustler::nif(schedule = "DirtyCpu")]
 fn connect(uri: String) -> ResourceArc<DbConnResource> {
     let conn = get_runtime()
         .block_on(async { lancedb::connect(&uri).execute().await })
@@ -28,7 +28,7 @@ fn connect(uri: String) -> ResourceArc<DbConnResource> {
     ResourceArc::new(DbConnResource(Arc::new(Mutex::new(conn))))
 }
 
-#[rustler::nif]
+#[rustler::nif(schedule = "DirtyCpu")]
 fn table_names(conn: ResourceArc<DbConnResource>) -> Vec<String> {
     let conn = db_conn(conn);
     return get_runtime().block_on(async { conn.table_names().execute().await.unwrap() });
