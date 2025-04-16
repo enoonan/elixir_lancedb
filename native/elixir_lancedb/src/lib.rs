@@ -1,10 +1,10 @@
-mod schema;
 mod atoms;
 mod db;
-use db::DbConnResource;
 mod runtime;
-use rustler::{Env, Term};
+mod schema;
 
+use db::DbConnResource;
+use rustler::{Env, Term};
 
 #[allow(unused, non_local_definitions)]
 fn load(env: Env, _: Term) -> bool {

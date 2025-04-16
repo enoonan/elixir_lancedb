@@ -35,10 +35,10 @@ Roadmap:
 
 - [X] Return a DB Connection from LanceDB to Elixir
 - [X] List DB tables
+- [X] Create DB table from schema
+- [X] Drop DB tables
 - [ ] Create DB table from data
-- [ ] Drop DB tables
 - [ ] Manage connections using a pool - maybe just for writes
-- [ ] Create DB table from schema
 - [ ] Add items to existing table
 - [ ] Query items from table
 - [ ] Delete items from table

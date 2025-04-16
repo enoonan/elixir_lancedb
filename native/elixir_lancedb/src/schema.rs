@@ -31,7 +31,7 @@ impl ChildField {
 impl Field {
     fn into_arrow(self) -> ArrowField {
         match self.field_type {
-            FieldType::Utf8 => ArrowField::new(self.name, DataType::Utf8, self.nullable), 
+            FieldType::Utf8 => ArrowField::new(self.name, DataType::Utf8, self.nullable),
             FieldType::Float32 => ArrowField::new(self.name, DataType::Float32, self.nullable),
             FieldType::Int32 => ArrowField::new(self.name, DataType::Int32, self.nullable),
             FieldType::List(child) => ArrowField::new(
@@ -43,7 +43,7 @@ impl Field {
                 self.name,
                 DataType::FixedSizeList(Arc::new(child.into_arrow()), dimension),
                 self.nullable,
-            )
+            ),
         }
     }
 }
