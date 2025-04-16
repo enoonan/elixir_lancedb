@@ -1,0 +1,79 @@
+use arrow_schema::{DataType, Field as ArrowField};
+use rustler::{NifStruct, NifTaggedEnum, NifUnitEnum};
+use std::{collections::HashMap, sync::Arc};
+
+#[derive(NifStruct, Clone)]
+#[module = "ElixirLanceDB.Native.Schema.Field"]
+pub struct Field {
+    name: String,
+    field_type: FieldType,
+    nullable: bool,
+}
+
+#[derive(NifStruct, Clone)]
+#[module = "ElixirLanceDB.Native.Schema.Field"]
+pub struct ChildField {
+    name: String,
+    field_type: ChildFieldType,
+    nullable: bool,
+}
+
+impl ChildField {
+    fn into_arrow(self) -> ArrowField {
+        match self.field_type {
+            ChildFieldType::Utf8 => ArrowField::new(self.name, DataType::Utf8, self.nullable),
+            ChildFieldType::Float32 => ArrowField::new(self.name, DataType::Float32, self.nullable),
+            ChildFieldType::Int32 => ArrowField::new(self.name, DataType::Int32, self.nullable),
+        }
+    }
+}
+
+impl Field {
+    fn into_arrow(self) -> ArrowField {
+        match self.field_type {
+            FieldType::Utf8 => ArrowField::new(self.name, DataType::Utf8, self.nullable), 
+            FieldType::Float32 => ArrowField::new(self.name, DataType::Float32, self.nullable),
+            FieldType::Int32 => ArrowField::new(self.name, DataType::Int32, self.nullable),
+            FieldType::List(child) => ArrowField::new(
+                self.name,
+                DataType::List(Arc::new(child.into_arrow())),
+                self.nullable,
+            ),
+            FieldType::FixedSizeList(child, dimension) => ArrowField::new(
+                self.name,
+                DataType::FixedSizeList(Arc::new(child.into_arrow()), dimension),
+                self.nullable,
+            )
+        }
+    }
+}
+
+#[derive(NifTaggedEnum, Clone)]
+pub enum FieldType {
+    Utf8,
+    Float32,
+    Int32,
+    List(ChildField),
+    FixedSizeList(ChildField, i32),
+}
+
+#[derive(NifUnitEnum, Clone, Copy)]
+pub enum ChildFieldType {
+    Utf8,
+    Float32,
+    Int32,
+}
+
+#[derive(NifStruct, Clone)]
+#[module = "ElixirLanceDB.Native.Schema"]
+pub struct Schema {
+    fields: Vec<Field>,
+    metadata: HashMap<String, String>,
+}
+
+impl Schema {
+    pub fn into_arrow(self) -> arrow_schema::Schema {
+        let fields: Vec<ArrowField> = self.fields.iter().map(|f| f.clone().into_arrow()).collect();
+        arrow_schema::Schema::new(fields)
+    }
+}
