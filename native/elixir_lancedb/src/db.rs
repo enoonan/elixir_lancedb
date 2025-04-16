@@ -28,9 +28,20 @@ fn table_names(conn: ResourceArc<DbConnResource>) -> Result<Vec<String>, String>
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
-fn drop_all_tables(conn: ResourceArc<DbConnResource>) -> Result<Atom, String> {
+fn drop_all_tables(conn: ResourceArc<DbConnResource>) -> Result<(), String> {
     let conn = db_conn(conn);
     let result = get_runtime().block_on(async { conn.drop_all_tables().await });
+
+    match result {
+        Ok(_) => Ok(()),
+        Err(_) => Err("failed to create database table".to_string()),
+    }
+}
+
+#[rustler::nif(schedule = "DirtyCpu")]
+fn drop_table(conn: ResourceArc<DbConnResource>, table_name: String) -> Result<Atom, String> {
+    let conn = db_conn(conn);
+    let result = get_runtime().block_on(async { conn.drop_table(&table_name).await });
 
     match result {
         Ok(_) => Ok(atoms::tables_dropped()),

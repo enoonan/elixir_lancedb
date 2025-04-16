@@ -39,9 +39,20 @@ defmodule ElixirLanceDB.NativeTest do
     test "it can drop all tables" do
       conn = get_conn()
       conn |> Native.create_empty_table("table_to_drop", Schema.from([Field.utf8("foo")]))
-      assert {:ok, ["table_to_drop"]} = conn |> Native.table_names()
+      assert {:ok, ["table_to_drop"]} == conn |> Native.table_names()
       conn |> Native.drop_all_tables()
       assert {:ok, []} = conn |> Native.table_names()
+    end
+
+    test "it can drop single table" do
+      conn = get_conn()
+      conn |> Native.create_empty_table("table_to_drop", Schema.from([Field.utf8("foo")]))
+      conn |> Native.create_empty_table("table_to_keep", Schema.from([Field.float32("bar")]))
+      assert {:ok, tables} = conn |> Native.table_names()
+      assert tables |> is_list()
+      assert tables |> length() == 2
+      conn |> Native.drop_table("table_to_drop")
+      assert {:ok, ["table_to_keep"]} == conn |> Native.table_names()
     end
   end
 
