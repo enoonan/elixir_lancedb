@@ -96,6 +96,14 @@ fn create_table_with_data(
     }
 }
 
+// #[rustler::nif(schedule = "DirtyCpu")]
+// fn query_table<'a>(
+//     conn: ResourceArc<DbConnResource>,
+//     table_name: String,
+// ) -> Result<Term<'a>, String> {
+
+// }
+
 pub fn db_conn(conn_resource: ResourceArc<DbConnResource>) -> Connection {
     let connection;
     {
