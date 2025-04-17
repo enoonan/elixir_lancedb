@@ -16,7 +16,14 @@ defmodule ElixirLanceDB.Native do
     err()
   end
 
-  # def create_table(conn, table_name, initial_data), do: err()
+  def create_table(conn, table_name, initial_data) do
+    {:ok, schema} = initial_data |> Schema.infer()
+    create_table_with_data(conn, table_name, initial_data, schema)
+  end
+
+  def create_table_with_data(_conn, _table_name, _initial_data, %Schema{}), do: err()
+
+  def foo(), do: :bar
 
   defp err(), do: :erlang.nif_error(:nif_not_loaded)
 end

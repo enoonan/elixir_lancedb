@@ -8,6 +8,22 @@ defmodule ElixirLanceDB.Native.Schema.Field do
           nullable: boolean()
         }
 
+  def from_inferred_type({name, {:list, child_type}}) do
+       %__MODULE__{
+      name: name,
+      field_type: {:list, from_inferred_type({"#{name}_child", child_type})},
+      nullable: false
+    }
+  end
+
+  def from_inferred_type({name, {:fixed_size_list, child_type, dimension}}) do
+       %__MODULE__{
+      name: name,
+      field_type: {:list, from_inferred_type({"#{name}_child", child_type}), dimension},
+      nullable: false
+    }
+  end
+
   def from_inferred_type({name, type})
       when is_binary(name) and (is_atom(type) or is_tuple(type)) do
     %__MODULE__{

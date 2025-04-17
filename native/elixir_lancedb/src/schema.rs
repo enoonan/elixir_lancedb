@@ -10,24 +10,6 @@ pub struct Field {
     nullable: bool,
 }
 
-#[derive(NifStruct, Clone)]
-#[module = "ElixirLanceDB.Native.Schema.Field"]
-pub struct ChildField {
-    name: String,
-    field_type: ChildFieldType,
-    nullable: bool,
-}
-
-impl ChildField {
-    fn into_arrow(self) -> ArrowField {
-        match self.field_type {
-            ChildFieldType::Utf8 => ArrowField::new(self.name, DataType::Utf8, self.nullable),
-            ChildFieldType::Float32 => ArrowField::new(self.name, DataType::Float32, self.nullable),
-            ChildFieldType::Int32 => ArrowField::new(self.name, DataType::Int32, self.nullable),
-        }
-    }
-}
-
 impl Field {
     fn into_arrow(self) -> ArrowField {
         match self.field_type {
@@ -44,6 +26,24 @@ impl Field {
                 DataType::FixedSizeList(Arc::new(child.into_arrow()), dimension),
                 self.nullable,
             ),
+        }
+    }
+}
+
+#[derive(NifStruct, Clone)]
+#[module = "ElixirLanceDB.Native.Schema.Field"]
+pub struct ChildField {
+    name: String,
+    field_type: ChildFieldType,
+    nullable: bool,
+}
+
+impl ChildField {
+    fn into_arrow(self) -> ArrowField {
+        match self.field_type {
+            ChildFieldType::Utf8 => ArrowField::new(self.name, DataType::Utf8, self.nullable),
+            ChildFieldType::Float32 => ArrowField::new(self.name, DataType::Float32, self.nullable),
+            ChildFieldType::Int32 => ArrowField::new(self.name, DataType::Int32, self.nullable),
         }
     }
 }

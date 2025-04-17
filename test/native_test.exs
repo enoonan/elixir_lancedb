@@ -35,10 +35,9 @@ defmodule ElixirLanceDB.NativeTest do
       assert {:ok, ["test_table"]} = conn |> Native.table_names()
     end
 
-    # test "it creates a table from initial data", %{conn: conn} do
-    #   {:ok, _} =
-    #     conn |> Native.create_table("test_from_data", [%{key: "value1"}, %{key: "value2"}])
-    # end
+    test "it creates a table from initial data", %{conn: conn} do
+      conn |> Native.create_table("test_from_data", [%{baz: [123, 456]}])
+    end
 
     test "it can drop all tables", %{conn: conn} do
       conn |> Native.create_empty_table("table_to_drop", Schema.from([Field.utf8("foo")]))

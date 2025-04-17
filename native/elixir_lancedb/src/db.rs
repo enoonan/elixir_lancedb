@@ -3,7 +3,7 @@
 // };
 
 use lancedb::Connection;
-use rustler::{Atom, ResourceArc};
+use rustler::{Atom, ResourceArc, Term};
 use std::sync::{Arc, Mutex};
 
 use crate::{atoms, runtime::get_runtime, schema};
@@ -58,7 +58,7 @@ fn create_empty_table(
     conn: ResourceArc<DbConnResource>,
     table_name: String,
     schema: schema::Schema,
-) -> Result<Atom, String> {
+) -> Result<(), String> {
     let conn = db_conn(conn);
     let result = get_runtime().block_on(async {
         conn.create_empty_table(table_name, Arc::new(schema.into_arrow()))
@@ -67,8 +67,27 @@ fn create_empty_table(
     });
 
     match result {
-        Ok(_) => Ok(atoms::created_table()),
+        Ok(_) => Ok(()),
         Err(_) => Err("failed to create empty database table".to_string()),
+    }
+}
+#[rustler::nif(schedule = "DirtyCpu")]
+fn create_table_with_data(
+    conn: ResourceArc<DbConnResource>,
+    table_name: String,
+    initial_data: Vec<Term>,
+    schema: schema::Schema,
+) -> Result<(), String> {
+    let conn = db_conn(conn);
+    let result = get_runtime().block_on(async {
+        conn.create_empty_table(table_name, Arc::new(schema.into_arrow()))
+            .execute()
+            .await
+    });
+    println!("{:?}", initial_data);
+    match result {
+        Ok(_) => Ok(()),
+        Err(_) => Err("failed to create database table".to_string()),
     }
 }
 
@@ -80,24 +99,24 @@ fn create_empty_table(
 // ) -> Result<Atom, String> {
 //     let conn = db_conn(conn);
 //     let arrow_data = conversion::maps_to_arrow(initial_data);
-    // let decoded_data = initial_data
-    //     .iter()
-    //     .map(|term| {
-    //         let map: HashMap<String, rustler::Term> = term.decode()?;
-    //         Ok(map)
-    //     })
-    //     .collect::<Result<Vec<_>, rustler::Error>>()
-    //     .map_err(|_| "failed to decode initial data when creating table");
+// let decoded_data = initial_data
+//     .iter()
+//     .map(|term| {
+//         let map: HashMap<String, rustler::Term> = term.decode()?;
+//         Ok(map)
+//     })
+//     .collect::<Result<Vec<_>, rustler::Error>>()
+//     .map_err(|_| "failed to decode initial data when creating table");
 
-    // let arrow_data = RecordBatch::try_from_iter(arrow_data).unwrap();
-    // let result = get_runtime()
-    //     .block_on(async { conn.create_table(table_name, initial_data).execute().await });
+// let arrow_data = RecordBatch::try_from_iter(arrow_data).unwrap();
+// let result = get_runtime()
+//     .block_on(async { conn.create_table(table_name, initial_data).execute().await });
 
-    // return Ok(atoms::created_table());
-    // match result {
-    //     Ok(_) => Ok(atoms::created_table()),
-    //     Err(_) => Err("failed to create database table".to_string()),
-    // }
+// return Ok(atoms::created_table());
+// match result {
+//     Ok(_) => Ok(atoms::created_table()),
+//     Err(_) => Err("failed to create database table".to_string()),
+// }
 // }
 
 pub fn db_conn(conn_resource: ResourceArc<DbConnResource>) -> Connection {
