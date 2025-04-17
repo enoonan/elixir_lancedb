@@ -37,16 +37,16 @@ Roadmap:
 - [X] List DB tables
 - [X] Create DB table from schema
 - [X] Drop DB tables
-- [ ] Create DB table from data
-- [ ] Manage connections using a pool - maybe just for writes
-- [ ] Add items to existing table
+- [X] Create DB table from data
 - [ ] Query items from table
+- [ ] Add items to existing table
 - [ ] Delete items from table
 - [ ] Vector search
 - [ ] Full text search
 - [ ] Hybrid Vector + Full Text search
 - [ ] Update table items
 - [ ] Modify table schema 
+- [ ] Manage connections using a pool - maybe just for writes
 - [ ] Cleanup/Compaction strategies
 - [ ] Provide embedding functions to Lance directly
 
