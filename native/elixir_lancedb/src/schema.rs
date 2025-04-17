@@ -5,9 +5,9 @@ use std::{collections::HashMap, sync::Arc};
 #[derive(NifStruct, Clone)]
 #[module = "ElixirLanceDB.Native.Schema.Field"]
 pub struct Field {
-    name: String,
-    field_type: FieldType,
-    nullable: bool,
+    pub name: String,
+    pub field_type: FieldType,
+    pub nullable: bool,
 }
 
 impl Field {
@@ -30,12 +30,12 @@ impl Field {
     }
 }
 
-#[derive(NifStruct, Clone)]
+#[derive(NifStruct, Clone, Debug)]
 #[module = "ElixirLanceDB.Native.Schema.Field"]
 pub struct ChildField {
-    name: String,
-    field_type: ChildFieldType,
-    nullable: bool,
+    pub name: String,
+    pub field_type: ChildFieldType,
+    pub nullable: bool,
 }
 
 impl ChildField {
@@ -48,7 +48,7 @@ impl ChildField {
     }
 }
 
-#[derive(NifTaggedEnum, Clone)]
+#[derive(NifTaggedEnum, Debug, Clone)]
 pub enum FieldType {
     Utf8,
     Float32,
@@ -57,7 +57,7 @@ pub enum FieldType {
     FixedSizeList(ChildField, i32),
 }
 
-#[derive(NifUnitEnum, Clone, Copy)]
+#[derive(NifUnitEnum, Clone, Copy, Debug)]
 pub enum ChildFieldType {
     Utf8,
     Float32,
@@ -67,8 +67,8 @@ pub enum ChildFieldType {
 #[derive(NifStruct, Clone)]
 #[module = "ElixirLanceDB.Native.Schema"]
 pub struct Schema {
-    fields: Vec<Field>,
-    metadata: HashMap<String, String>,
+    pub fields: Vec<Field>,
+    pub metadata: HashMap<String, String>,
 }
 
 impl Schema {

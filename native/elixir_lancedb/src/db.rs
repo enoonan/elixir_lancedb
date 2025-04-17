@@ -1,12 +1,9 @@
-// use arrow_array::{
-//     ffi_stream::ArrowArrayStreamReader, RecordBatch, RecordBatchIterator, RecordBatchReader,
-// };
-
+use arrow_array::{RecordBatch, RecordBatchIterator};
 use lancedb::Connection;
 use rustler::{Atom, ResourceArc, Term};
 use std::sync::{Arc, Mutex};
 
-use crate::{atoms, runtime::get_runtime, schema};
+use crate::{atoms, conversion, runtime::get_runtime, schema};
 
 pub struct DbConnResource(pub Arc<Mutex<Connection>>);
 
@@ -75,49 +72,29 @@ fn create_empty_table(
 fn create_table_with_data(
     conn: ResourceArc<DbConnResource>,
     table_name: String,
-    initial_data: Vec<Term>,
-    schema: schema::Schema,
+    erl_data: Term,
+    erl_schema: schema::Schema,
 ) -> Result<(), String> {
+    let arrow_schema = Arc::new(erl_schema.clone().into_arrow());
+    let columnar_data = conversion::to_arrow(erl_data, erl_schema.clone()).unwrap();
+    let batch = RecordBatchIterator::new(
+        vec![RecordBatch::try_new(arrow_schema.clone(), columnar_data)],
+        arrow_schema.clone(),
+    );
+
     let conn = db_conn(conn);
     let result = get_runtime().block_on(async {
-        conn.create_empty_table(table_name, Arc::new(schema.into_arrow()))
+        conn.create_table(table_name, Box::new(batch))
             .execute()
             .await
     });
-    println!("{:?}", initial_data);
     match result {
         Ok(_) => Ok(()),
-        Err(_) => Err("failed to create database table".to_string()),
+        Err(_) => {
+            return Err("failed to create database table from data".to_string());
+        }
     }
 }
-
-// #[rustler::nif(schedule = "DirtyCpu")]
-// fn create_table(
-//     conn: ResourceArc<DbConnResource>,
-//     table_name: String,
-//     initial_data: Vec<HashMap<Term, Term>>,
-// ) -> Result<Atom, String> {
-//     let conn = db_conn(conn);
-//     let arrow_data = conversion::maps_to_arrow(initial_data);
-// let decoded_data = initial_data
-//     .iter()
-//     .map(|term| {
-//         let map: HashMap<String, rustler::Term> = term.decode()?;
-//         Ok(map)
-//     })
-//     .collect::<Result<Vec<_>, rustler::Error>>()
-//     .map_err(|_| "failed to decode initial data when creating table");
-
-// let arrow_data = RecordBatch::try_from_iter(arrow_data).unwrap();
-// let result = get_runtime()
-//     .block_on(async { conn.create_table(table_name, initial_data).execute().await });
-
-// return Ok(atoms::created_table());
-// match result {
-//     Ok(_) => Ok(atoms::created_table()),
-//     Err(_) => Err("failed to create database table".to_string()),
-// }
-// }
 
 pub fn db_conn(conn_resource: ResourceArc<DbConnResource>) -> Connection {
     let connection;

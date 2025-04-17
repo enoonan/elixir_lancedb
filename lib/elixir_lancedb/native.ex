@@ -23,7 +23,9 @@ defmodule ElixirLanceDB.Native do
 
   def create_table_with_data(_conn, _table_name, _initial_data, %Schema{}), do: err()
 
-  def foo(), do: :bar
+  # def print(term), do: err()
+
+  def to_arrow(_records, _schema), do: err()
 
   defp err(), do: :erlang.nif_error(:nif_not_loaded)
 end
