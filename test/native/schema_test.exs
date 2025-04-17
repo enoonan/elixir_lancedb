@@ -29,7 +29,7 @@ defmodule ElixirLanceDB.Native.SchemaTest do
       assert schema.fields == [
                %Field{
                  name: "foo",
-                 field_type: {:list, :float32},
+                 field_type: {:list, Field.float32("foo_child")},
                  nullable: false
                }
              ]
@@ -45,7 +45,7 @@ defmodule ElixirLanceDB.Native.SchemaTest do
       assert schema.fields == [
                %ElixirLanceDB.Native.Schema.Field{
                  name: "foo",
-                 field_type: {:fixed_size_list, :float32, 3},
+                 field_type: {:fixed_size_list, Field.float32("foo_child"), 3},
                  nullable: false
                }
              ]
@@ -61,7 +61,7 @@ defmodule ElixirLanceDB.Native.SchemaTest do
       assert schema.fields == [
                %ElixirLanceDB.Native.Schema.Field{
                  name: "foo",
-                 field_type: {:list, :float32},
+                 field_type: {:list, Field.float32("foo_child")},
                  nullable: false
                }
              ]
@@ -80,7 +80,7 @@ defmodule ElixirLanceDB.Native.SchemaTest do
       assert schema.fields == [
                %ElixirLanceDB.Native.Schema.Field{
                  name: "foo",
-                 field_type: {:list, :float32},
+                 field_type: {:list, Field.float32("foo_child")},
                  nullable: false
                }
              ]
