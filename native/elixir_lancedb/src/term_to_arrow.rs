@@ -1,3 +1,4 @@
+use crate::error::{Error, Result};
 use arrow_array::{
     builder::{
         ArrayBuilder, FixedSizeListBuilder, Float32Builder, Int32Builder, ListBuilder,
@@ -9,9 +10,11 @@ use rustler::Term;
 
 use crate::schema::{ChildFieldType, FieldType, Schema};
 
-pub fn to_arrow(term: Term, erl_schema: Schema) -> Result<Vec<ArrayRef>, ()> {
+pub fn to_arrow(term: Term, erl_schema: Schema) -> Result<Vec<ArrayRef>> {
     if !term.is_list() {
-        return Err(());
+        return Err(Error::InvalidInput {
+            message: format!("Expected list term, got: {:?}", term.get_type()),
+        });
     }
 
     let empty_cols: Vec<Box<dyn ArrayBuilder>> =
@@ -60,18 +63,17 @@ pub fn to_arrow(term: Term, erl_schema: Schema) -> Result<Vec<ArrayRef>, ()> {
                 acc
             });
 
-    let mut builders: Vec<Box<dyn ArrayBuilder>> =
-        term.into_list_iterator()
-            .unwrap()
-            .fold(empty_cols, |mut acc, record| {
+    let builders: Result<Vec<Box<dyn ArrayBuilder>>> =
+        term.into_list_iterator()?
+            .try_fold(empty_cols, |mut acc, record| {
                 for (idx, field) in erl_schema.clone().fields.into_iter().enumerate() {
-                    let val = record.map_get(field.name).unwrap();
+                    let val = record.map_get(field.name)?;
                     match field.field_type {
                         FieldType::Utf8 => {
                             if let Some(builder) =
                                 acc[idx].as_any_mut().downcast_mut::<StringBuilder>()
                             {
-                                let the_str: String = val.decode().unwrap();
+                                let the_str: String = val.decode()?;
                                 builder.append_value(the_str);
                             }
                         }
@@ -79,7 +81,7 @@ pub fn to_arrow(term: Term, erl_schema: Schema) -> Result<Vec<ArrayRef>, ()> {
                             if let Some(builder) =
                                 acc[idx].as_any_mut().downcast_mut::<Int32Builder>()
                             {
-                                let the_int: i32 = val.decode().unwrap();
+                                let the_int: i32 = val.decode()?;
                                 builder.append_value(the_int);
                             }
                         }
@@ -87,7 +89,7 @@ pub fn to_arrow(term: Term, erl_schema: Schema) -> Result<Vec<ArrayRef>, ()> {
                             if let Some(builder) =
                                 acc[idx].as_any_mut().downcast_mut::<Float32Builder>()
                             {
-                                let the_float: f32 = val.decode().unwrap();
+                                let the_float: f32 = val.decode()?;
                                 builder.append_value(the_float);
                             }
                         }
@@ -97,7 +99,7 @@ pub fn to_arrow(term: Term, erl_schema: Schema) -> Result<Vec<ArrayRef>, ()> {
                                     .as_any_mut()
                                     .downcast_mut::<ListBuilder<StringBuilder>>()
                                 {
-                                    let the_list: Vec<String> = val.decode().unwrap();
+                                    let the_list: Vec<String> = val.decode()?;
                                     for s in the_list.iter() {
                                         builder.values().append_value(s.as_str());
                                     }
@@ -109,7 +111,7 @@ pub fn to_arrow(term: Term, erl_schema: Schema) -> Result<Vec<ArrayRef>, ()> {
                                     .as_any_mut()
                                     .downcast_mut::<ListBuilder<Int32Builder>>()
                                 {
-                                    let the_list: Vec<i32> = val.decode().unwrap();
+                                    let the_list: Vec<i32> = val.decode()?;
                                     for s in the_list.iter() {
                                         builder.values().append_value(*s);
                                     }
@@ -121,7 +123,7 @@ pub fn to_arrow(term: Term, erl_schema: Schema) -> Result<Vec<ArrayRef>, ()> {
                                     .as_any_mut()
                                     .downcast_mut::<ListBuilder<Float32Builder>>()
                                 {
-                                    let the_list: Vec<f32> = val.decode().unwrap();
+                                    let the_list: Vec<f32> = val.decode()?;
 
                                     for s in the_list.iter() {
                                         builder.values().append_value(*s);
@@ -136,7 +138,7 @@ pub fn to_arrow(term: Term, erl_schema: Schema) -> Result<Vec<ArrayRef>, ()> {
                                     .as_any_mut()
                                     .downcast_mut::<FixedSizeListBuilder<StringBuilder>>()
                                 {
-                                    let the_list: Vec<String> = val.decode().unwrap();
+                                    let the_list: Vec<String> = val.decode()?;
                                     for s in the_list.iter() {
                                         builder.values().append_value(s.as_str());
                                     }
@@ -148,7 +150,7 @@ pub fn to_arrow(term: Term, erl_schema: Schema) -> Result<Vec<ArrayRef>, ()> {
                                     .as_any_mut()
                                     .downcast_mut::<FixedSizeListBuilder<Int32Builder>>()
                                 {
-                                    let the_list: Vec<i32> = val.decode().unwrap();
+                                    let the_list: Vec<i32> = val.decode()?;
                                     for s in the_list.iter() {
                                         builder.values().append_value(*s);
                                     }
@@ -160,7 +162,7 @@ pub fn to_arrow(term: Term, erl_schema: Schema) -> Result<Vec<ArrayRef>, ()> {
                                     .as_any_mut()
                                     .downcast_mut::<FixedSizeListBuilder<Float32Builder>>()
                                 {
-                                    let the_list: Vec<f32> = val.decode().unwrap();
+                                    let the_list: Vec<f32> = val.decode()?;
                                     for s in the_list.iter() {
                                         builder.values().append_value(*s);
                                     }
@@ -170,9 +172,14 @@ pub fn to_arrow(term: Term, erl_schema: Schema) -> Result<Vec<ArrayRef>, ()> {
                         },
                     };
                 }
-                acc
+                Ok(acc)
             });
 
-    let columns: Vec<ArrayRef> = builders.iter_mut().map(|b| b.finish()).collect();
-    Ok(columns)
+    match builders {
+        Ok(mut builders) => {
+            let columns: Vec<ArrayRef> = builders.iter_mut().map(|b| b.finish()).collect();
+            Ok(columns)
+        }
+        Err(err) => Err(Error::from(err)),
+    }
 }

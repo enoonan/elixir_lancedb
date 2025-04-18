@@ -1,15 +1,15 @@
-use std::collections::HashMap;
-
+use crate::error::Result;
 use arrow_array::RecordBatch;
 use arrow_schema::DataType;
 use arrow_schema::Schema;
 use rustler::{Encoder, Env, Term};
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum Value {
     Utf8(String),
     Int32(i32),
-    // Float32(f32),
+    Float32(f32),
     // List(Vec<Primitive>),
     // FixedSizeList(Vec<Primitive>),
 }
@@ -19,7 +19,7 @@ impl Encoder for Value {
         match &self {
             Value::Utf8(val) => val.encode(env),
             Value::Int32(val) => val.encode(env),
-            // Value::Float32(val) => val.encode(env),
+            Value::Float32(val) => val.encode(env),
             // Value::List(list) => list.encode(env),
             // Value::FixedSizeList(list) => list.encode(env),
         }
@@ -45,7 +45,7 @@ impl Encoder for Value {
 pub fn term_from_arrow(
     results: Vec<RecordBatch>,
     schema: &Schema,
-) -> Result<Vec<HashMap<String, Value>>, String> {
+) -> Result<Vec<HashMap<String, Value>>> {
     let schema_fields = &schema.fields;
     let empty_recs: Vec<HashMap<String, Value>> = vec![];
     let records: Vec<HashMap<String, Value>> =
@@ -78,6 +78,16 @@ pub fn term_from_arrow(
                                 Value::Int32(value)
                             } else {
                                 Value::Int32(0)
+                            }
+                        }
+                        DataType::Float32 => {
+                            if let Some(float_array) =
+                                column.as_any().downcast_ref::<arrow_array::Float32Array>()
+                            {
+                                let value = float_array.value(row_idx);
+                                Value::Float32(value)
+                            } else {
+                                Value::Float32(0.0)
                             }
                         }
                         _ => panic!("Unsupported data type: {:?}", field.data_type()),

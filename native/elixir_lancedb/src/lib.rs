@@ -1,5 +1,6 @@
 mod atoms;
 mod db;
+mod error;
 mod runtime;
 mod schema;
 mod term_from_arrow;
