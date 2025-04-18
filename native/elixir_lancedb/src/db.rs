@@ -1,10 +1,16 @@
+use crate::{atoms, runtime::get_runtime, schema, term_from_arrow, term_to_arrow};
 use arrow_array::{RecordBatch, RecordBatchIterator};
+
+use futures::TryStreamExt;
+
+use lancedb::query::ExecutableQuery;
 use lancedb::Connection;
 use rustler::{Atom, ResourceArc, Term};
-use std::sync::{Arc, Mutex};
 
-use crate::{atoms, conversion, runtime::get_runtime, schema};
-
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 pub struct DbConnResource(pub Arc<Mutex<Connection>>);
 
 #[rustler::nif(schedule = "DirtyCpu")]
@@ -76,7 +82,7 @@ fn create_table_with_data(
     erl_schema: schema::Schema,
 ) -> Result<(), String> {
     let arrow_schema = Arc::new(erl_schema.clone().into_arrow());
-    let columnar_data = conversion::to_arrow(erl_data, erl_schema.clone()).unwrap();
+    let columnar_data = term_to_arrow::to_arrow(erl_data, erl_schema.clone()).unwrap();
     let batch = RecordBatchIterator::new(
         vec![RecordBatch::try_new(arrow_schema.clone(), columnar_data)],
         arrow_schema.clone(),
@@ -96,13 +102,42 @@ fn create_table_with_data(
     }
 }
 
-// #[rustler::nif(schedule = "DirtyCpu")]
-// fn query_table<'a>(
-//     conn: ResourceArc<DbConnResource>,
-//     table_name: String,
-// ) -> Result<Term<'a>, String> {
+#[rustler::nif(schedule = "DirtyCpu")]
+fn query_table<'a>(
+    conn: ResourceArc<DbConnResource>,
+    table_name: String,
+) -> Result<Vec<HashMap<String, term_from_arrow::Value>>, String> {
+    let conn = db_conn(conn);
 
-// }
+    let result: Result<Vec<HashMap<String, term_from_arrow::Value>>, String> = get_runtime()
+        .block_on(async {
+            let tbl = conn
+                .open_table(table_name)
+                .execute()
+                .await
+                .expect("Could not find table");
+
+            let schema = tbl.schema().await.expect("Could not get table schema");
+            // let batches: Vec<RecordBatch> = stream.try_collect().await.unwrap();
+            let results: Vec<RecordBatch> = tbl
+                .query()
+                .execute()
+                .await
+                .unwrap()
+                .try_collect()
+                .await
+                .unwrap();
+
+            // let batches: Vec<Term>;
+
+            term_from_arrow::term_from_arrow(results, schema.as_ref())
+        });
+
+    match result {
+        Ok(recs) => Ok(recs),
+        Err(_) => Err("Could not get results".to_string()),
+    }
+}
 
 pub fn db_conn(conn_resource: ResourceArc<DbConnResource>) -> Connection {
     let connection;

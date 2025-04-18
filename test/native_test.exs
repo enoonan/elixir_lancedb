@@ -44,6 +44,13 @@ defmodule ElixirLanceDB.NativeTest do
       assert result == items
     end
 
+    test "it can read data from table", %{conn: conn} do
+      items = [%{"baz" => 123, "foo" => "bar"}, %{"baz" => 456, "foo" => "qwer"}]
+      conn |> Native.create_table("for_querying", items)
+      {:ok, results} = conn |> Native.query_table("for_querying")
+      assert results == items
+    end
+
     test "it can drop all tables", %{conn: conn} do
       conn |> Native.create_empty_table("table_to_drop", Schema.from([Field.utf8("foo")]))
       assert {:ok, ["table_to_drop"]} == conn |> Native.table_names()

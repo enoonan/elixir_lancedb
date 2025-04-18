@@ -23,6 +23,8 @@ defmodule ElixirLanceDB.Native do
 
   def create_table_with_data(_conn, _table_name, _initial_data, %Schema{}), do: err()
 
+  def query_table(_conn, _table_name), do: err()
+
   # def print(term), do: err()
 
   def to_arrow(_records, _schema), do: err()

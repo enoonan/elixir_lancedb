@@ -1,8 +1,9 @@
 mod atoms;
-mod conversion;
 mod db;
 mod runtime;
 mod schema;
+mod term_from_arrow;
+mod term_to_arrow;
 
 use db::DbConnResource;
 use rustler::{Env, Term};

@@ -38,6 +38,7 @@ Roadmap:
 - [X] Create DB table from schema
 - [X] Drop DB tables
 - [X] Create DB table from data
+- [X] Read data back from table
 - [ ] Query items from table
 - [ ] Add items to existing table
 - [ ] Delete items from table
@@ -53,6 +54,17 @@ Roadmap:
 ... and ideally as much other functionality as LanceDB Provides.
 
 Having successfully checked off our first couple roadmap items, to the best of my knowledge this is the first time a reference to an open Lance database has been shared to the BEAM. Neat!
+
+
+---
+
+Influences:
+Elixir Explorer, arrow-elixir, snowflake_arrow, Polars
+https://github.com/jorgecarleitao/arrow2/discussions/1033
+
+
+
+
 
 <!-- ## Installation -->
 
