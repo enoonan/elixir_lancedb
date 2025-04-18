@@ -39,7 +39,8 @@ Roadmap:
 - [X] Drop DB tables
 - [X] Create DB table from data
 - [X] Read data back from table
-- [ ] Query items from table
+- [X] Hold peristent connection to table
+- [X] Query items from table
 - [ ] Add items to existing table
 - [ ] Delete items from table
 - [ ] Vector search
