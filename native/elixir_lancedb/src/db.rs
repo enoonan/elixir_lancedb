@@ -2,19 +2,15 @@ use crate::{
     atoms,
     error::{Error, Result},
     runtime::get_runtime,
-    schema, term_from_arrow, term_to_arrow,
+    schema,
+    table::TableResource, term_to_arrow,
 };
 use arrow_array::{RecordBatch, RecordBatchIterator};
-use futures::TryStreamExt;
 
-use lancedb::query::ExecutableQuery;
-use lancedb::Connection;
+use lancedb::{Connection, Table};
 use rustler::{Atom, ResourceArc, Term};
 
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 pub struct DbConnResource(pub Arc<Mutex<Connection>>);
 
 #[rustler::nif(schedule = "DirtyCpu")]
@@ -105,25 +101,21 @@ fn create_table_with_data(
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
-fn query_table<'a>(
+fn open_table(
     conn: ResourceArc<DbConnResource>,
     table_name: String,
-) -> Result<Vec<HashMap<String, term_from_arrow::Value>>> {
+) -> Result<ResourceArc<TableResource>> {
     let conn = db_conn(conn);
-
-    let result: Result<Vec<HashMap<String, term_from_arrow::Value>>> =
-        get_runtime().block_on(async {
-            let tbl = conn.open_table(table_name).execute().await?;
-
-            let schema = tbl.schema().await?;
-            let results: Vec<RecordBatch> = tbl.query().execute().await?.try_collect().await?;
-
-            term_from_arrow::term_from_arrow(results, schema.as_ref())
-        });
+    let result: Result<Table> = get_runtime().block_on(async {
+        conn.open_table(table_name)
+            .execute()
+            .await
+            .map_err(|e| Error::from(e))
+    });
 
     match result {
-        Ok(recs) => Ok(recs),
-        Err(err) => Err(Error::from(err)),
+        Ok(table) => Ok(ResourceArc::new(TableResource(Arc::new(Mutex::new(table))))),
+        Err(err) => Err(err),
     }
 }
 

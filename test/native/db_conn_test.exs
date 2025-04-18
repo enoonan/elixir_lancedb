@@ -36,19 +36,18 @@ defmodule ElixirLanceDB.NativeTest do
     end
 
     test "it creates a table from initial data", %{conn: conn} do
-      items = [%{"foo" => "bar", "baz" => [123, 456]}, %{"baz" => [789, 101112], "foo" => "duuuuuu"}]
+      items = [
+        %{"foo" => "bar", "baz" => [123, 456]},
+        %{"baz" => [789, 101_112], "foo" => "duuuuuu"}
+      ]
+
       conn |> Native.create_table("test_from_data", items)
       assert {:ok, ["test_from_data"]} = conn |> Native.table_names()
 
-      {:ok, result} = NodeJS.call({"src", "query"}, [Path.join(File.cwd!(), "data/testing"), "test_from_data"])
-      assert result == items
-    end
+      {:ok, result} =
+        NodeJS.call({"src", "query"}, [Path.join(File.cwd!(), "data/testing"), "test_from_data"])
 
-    test "it can read data from table", %{conn: conn} do
-      items = [%{"baz" => 123, "foo" => "bar"}, %{"baz" => 456, "foo" => "qwer"}]
-      conn |> Native.create_table("for_querying", items)
-      {:ok, results} = conn |> Native.query_table("for_querying")
-      assert results == items
+      assert result == items
     end
 
     test "it can drop all tables", %{conn: conn} do
@@ -66,6 +65,12 @@ defmodule ElixirLanceDB.NativeTest do
       assert tables |> length() == 2
       conn |> Native.drop_table("table_to_drop")
       assert {:ok, ["table_to_keep"]} == conn |> Native.table_names()
+    end
+
+    test "it can acquire an open table resource", %{conn: conn} do
+      conn |> Native.create_table("to_open", [%{"foo" => "bar"}, %{"foo" => "baz"}])
+      {:ok, table} = conn |> Native.open_table("to_open")
+      assert table |> is_reference()
     end
   end
 end
