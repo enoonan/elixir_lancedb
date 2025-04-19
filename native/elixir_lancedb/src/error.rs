@@ -85,6 +85,13 @@ impl From<LanceError> for Error {
     }
 }
 
+// Add this implementation for String errors
+impl From<String> for Error {
+    fn from(message: String) -> Self {
+        Error::Other { message }
+    }
+}
+
 impl Encoder for Error {
     fn encode<'a>(&self, env: Env<'a>) -> Term<'a> {
         let error_tuple = match self {

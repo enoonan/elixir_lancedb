@@ -1,4 +1,5 @@
 rustler::atoms! {
+    // Results and errors (mostly Lance error types)
     ok,
     error,
     invalid_table_name,
@@ -23,11 +24,19 @@ rustler::atoms! {
     path,
     source,
     other,
+
+    // Rustler-specific errors
     rustler_bad_arg,
     rustler_atom,
     rustler_raise_atom,
     rustler_raise_term,
     rustler_term,
+
+    // decoding atoms 
+    filter,
+    sql,
+    limit,
+
 // deprecating
     tables_dropped,
     table_dropped,

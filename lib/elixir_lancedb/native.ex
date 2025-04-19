@@ -1,4 +1,5 @@
 defmodule ElixirLanceDB.Native do
+  alias ElixirLanceDB.Native.Table.QueryRequest
   alias ElixirLanceDB.Native.Schema
   use Rustler, otp_app: :elixir_lancedb, crate: "elixir_lancedb"
 
@@ -25,7 +26,7 @@ defmodule ElixirLanceDB.Native do
 
   def open_table(_conn, _table_name), do: err()
 
-  def query(_table_ref), do: err()
+  def query(_table_ref, %{} \\ %QueryRequest{}), do: err()
 
   def to_arrow(_records, _schema), do: err()
 

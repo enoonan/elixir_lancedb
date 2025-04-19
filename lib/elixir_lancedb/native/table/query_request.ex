@@ -1,10 +1,10 @@
 defmodule ElixirLanceDB.Native.Table.QueryRequest do
-  # alias ElixirLanceDB.Native.Table.QueryFilter
+  alias ElixirLanceDB.Native.Table.QueryFilter
 
   defstruct [
+    :filter,
     :limit
     # :offset,
-    # :filter,
     # :full_text_search,
     # :select,
     # :fast_search,
@@ -15,9 +15,9 @@ defmodule ElixirLanceDB.Native.Table.QueryRequest do
   ]
 
   @type t() :: %__MODULE__{
+          filter: QueryFilter.t() | map() | nil,
           limit: integer() | nil
           # offset: integer() | nil,
-          # filter: QueryFilter.t() | nil,
           # full_text_search: map() | nil,
           # select: map() | nil,
           # fast_search: boolean(),
@@ -26,4 +26,21 @@ defmodule ElixirLanceDB.Native.Table.QueryRequest do
           # reranker: map() | nil,
           # norm: map() | nil
         }
+  def new(), do: %__MODULE__{}
+
+  def limit(%__MODULE__{} = request, limit) do
+    %__MODULE__{
+      request
+      | limit: limit
+    }
+  end
+
+  def filter_sql(%__MODULE__{} = request, sql) when is_binary(sql) do
+    %__MODULE__{
+      request |
+      filter: %QueryFilter{
+        sql: sql
+      }
+    }
+  end
 end

@@ -40,7 +40,8 @@ Roadmap:
 - [X] Create DB table from data
 - [X] Read data back from table
 - [X] Hold peristent connection to table
-- [X] Query items from table
+- [X] List items from table
+- [X] Query with SQL filter and limit
 - [ ] Add items to existing table
 - [ ] Delete items from table
 - [ ] Vector search
