@@ -3,7 +3,6 @@ mod db;
 mod error;
 mod runtime;
 mod rustler_arrow;
-mod schema;
 mod table;
 
 use db::DbConnResource;

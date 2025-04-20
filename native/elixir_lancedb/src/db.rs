@@ -2,8 +2,7 @@ use crate::{
     atoms,
     error::{Error, Result},
     runtime::get_runtime,
-    rustler_arrow::term_to_arrow,
-    schema,
+    rustler_arrow::{schema, term_to_arrow},
     table::TableResource,
 };
 use arrow_array::{RecordBatch, RecordBatchIterator};
