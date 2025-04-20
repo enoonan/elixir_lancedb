@@ -15,8 +15,7 @@ defmodule ElixirNativeDB.Native.TableTest do
     test "it can scan for full table results", %{table: fruits} do
       {:ok, results} = fruits |> Native.query()
 
-      assert results |> Enum.map(&(&1 |> Map.delete("avg_weight_oz"))) ==
-               fruits() |> Enum.map(&(&1 |> Map.delete("avg_weight_oz")))
+      assert results == fruits()
     end
 
     test "it can filter results using SQL", %{table: fruits} do
@@ -37,6 +36,14 @@ defmodule ElixirNativeDB.Native.TableTest do
       assert apple?["name"] == "apple"
       assert apple?["types"] == ["red", "green"]
     end
+
+    test "it can add rows to existing table", %{table: fruits} do
+      fruits |> Native.add(new_fruits())
+      {:ok, full_table} = fruits |> Native.query()
+      assert full_table |> length() == 4
+      assert full_table |> Enum.find(false, fn fruit -> fruit["name"] == "grape" end)
+      assert full_table |> Enum.find(false, fn fruit -> fruit["name"] == "orange" end)
+    end
   end
 
   defp fruits() do
@@ -45,14 +52,31 @@ defmodule ElixirNativeDB.Native.TableTest do
         "id" => 123,
         "name" => "apple",
         "types" => ["red", "green"],
-        "avg_weight_oz" => 5.36324
+        "avg_weight_oz" => 5.363239765167236
       },
       %{
         "id" => 456,
         "name" => "banana",
         "types" => ["cavendish", "plantain"],
-        "avg_weight_oz" => 4.33425
+        "avg_weight_oz" => 4.334249973297119
       }
     ]
+  end
+
+  defp new_fruits() do
+     [
+         %{
+        "id" => 234,
+        "name" => "grape",
+        "types" => ["red", "green"],
+        "avg_weight_oz" => 6.345239765167236
+        },
+        %{
+          "id" => 567,
+          "name" => "orange",
+          "types" => ["mandarine", "navel", "disappointing"],
+          "avg_weight_oz" => 7.338769973297119
+        }
+      ]
   end
 end

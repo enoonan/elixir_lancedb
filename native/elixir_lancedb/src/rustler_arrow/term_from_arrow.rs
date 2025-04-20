@@ -9,7 +9,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 #[derive(Debug)]
-pub enum ReturnValue {
+pub enum ReturnableTerm {
+    Boolean(bool),
     Utf8(String),
     Int32(i32),
     Float32(f32),
@@ -18,45 +19,56 @@ pub enum ReturnValue {
     ListUtf8(Vec<String>),
 }
 
-impl Encoder for ReturnValue {
+impl Encoder for ReturnableTerm {
     fn encode<'b>(&self, env: Env<'b>) -> Term<'b> {
         match &self {
-            ReturnValue::Utf8(val) => val.encode(env),
-            ReturnValue::Int32(val) => val.encode(env),
-            ReturnValue::Float32(val) => val.encode(env),
-            ReturnValue::ListFloat32(val) => val.encode(env),
-            ReturnValue::ListInt32(val) => val.encode(env),
-            ReturnValue::ListUtf8(val) => val.encode(env),
+            ReturnableTerm::Boolean(val) => val.encode(env),
+            ReturnableTerm::Utf8(val) => val.encode(env),
+            ReturnableTerm::Int32(val) => val.encode(env),
+            ReturnableTerm::Float32(val) => val.encode(env),
+            ReturnableTerm::ListFloat32(val) => val.encode(env),
+            ReturnableTerm::ListInt32(val) => val.encode(env),
+            ReturnableTerm::ListUtf8(val) => val.encode(env),
         }
     }
 }
 
-pub fn term_from_arrow(
+pub fn from_arrow(
     results: Vec<RecordBatch>,
     schema: &Schema,
-) -> Result<Vec<HashMap<String, ReturnValue>>> {
+) -> Result<Vec<HashMap<String, ReturnableTerm>>> {
     let schema_fields = &schema.fields;
-    let empty_recs: Vec<HashMap<String, ReturnValue>> = vec![];
-    let records: Vec<HashMap<String, ReturnValue>> =
+    let empty_recs: Vec<HashMap<String, ReturnableTerm>> = vec![];
+    let records: Vec<HashMap<String, ReturnableTerm>> =
         results.into_iter().fold(empty_recs, |mut recs, batch| {
             let num_rows = batch.num_rows();
             let num_columns = batch.num_columns();
 
             for row_idx in 0..num_rows {
-                let mut record: HashMap<String, ReturnValue> = HashMap::new();
+                let mut record: HashMap<String, ReturnableTerm> = HashMap::new();
 
                 for col_idx in 0..num_columns {
                     let field = &schema_fields[col_idx];
                     let column = batch.column(col_idx);
                     let value = match field.data_type() {
+                        DataType::Boolean => {
+                            if let Some(bool_array) =
+                                column.as_any().downcast_ref::<arrow_array::BooleanArray>()
+                            {
+                                let val = bool_array.value(row_idx);
+                                ReturnableTerm::Boolean(val)
+                            } else {
+                                ReturnableTerm::Boolean(false)
+                            }
+                        }
                         DataType::Utf8 => {
                             if let Some(string_array) =
                                 column.as_any().downcast_ref::<arrow_array::StringArray>()
                             {
                                 let val = string_array.value(row_idx);
-                                ReturnValue::Utf8(val.to_string())
+                                ReturnableTerm::Utf8(val.to_string())
                             } else {
-                                ReturnValue::Utf8("".to_string())
+                                ReturnableTerm::Utf8("".to_string())
                             }
                         }
                         DataType::Int32 => {
@@ -64,9 +76,9 @@ pub fn term_from_arrow(
                                 column.as_any().downcast_ref::<arrow_array::Int32Array>()
                             {
                                 let value = int_array.value(row_idx);
-                                ReturnValue::Int32(value)
+                                ReturnableTerm::Int32(value)
                             } else {
-                                ReturnValue::Int32(0)
+                                ReturnableTerm::Int32(0)
                             }
                         }
                         DataType::Float32 => {
@@ -74,9 +86,9 @@ pub fn term_from_arrow(
                                 column.as_any().downcast_ref::<arrow_array::Float32Array>()
                             {
                                 let value = float_array.value(row_idx);
-                                ReturnValue::Float32(value)
+                                ReturnableTerm::Float32(value)
                             } else {
-                                ReturnValue::Float32(0.0)
+                                ReturnableTerm::Float32(0.0)
                             }
                         }
                         DataType::List(field) => {
@@ -84,31 +96,22 @@ pub fn term_from_arrow(
                                 column.as_any().downcast_ref::<arrow_array::ListArray>()
                             {
                                 match field.data_type() {
-                                    DataType::Utf8 => {
-                                        match array_to_values(&list_array.value(row_idx)) {
-                                            Ok(value) => value,
-                                            Err(_) => ReturnValue::ListUtf8(vec![]),
-                                        }
-                                    }
+                                    DataType::Utf8 => array_to_values(&list_array.value(row_idx))
+                                        .unwrap_or(ReturnableTerm::ListUtf8(vec![])),
                                     DataType::Float32 => {
-                                        match array_to_values(&list_array.value(row_idx)) {
-                                            Ok(value) => value,
-                                            Err(_) => ReturnValue::ListFloat32(vec![]),
-                                        }
+                                        array_to_values(&list_array.value(row_idx))
+                                            .unwrap_or(ReturnableTerm::ListFloat32(vec![]))
                                     }
-                                    DataType::Int32 => {
-                                        match array_to_values(&list_array.value(row_idx)) {
-                                            Ok(value) => value,
-                                            Err(_) => ReturnValue::ListInt32(vec![]),
-                                        }
-                                    }
+                                    DataType::Int32 => array_to_values(&list_array.value(row_idx))
+                                        .unwrap_or(ReturnableTerm::ListInt32(vec![])),
+
                                     _ => todo!(),
                                 }
                             } else {
                                 match field.data_type() {
-                                    DataType::Utf8 => ReturnValue::ListUtf8(vec![]),
-                                    DataType::Int32 => ReturnValue::ListInt32(vec![]),
-                                    DataType::Float32 => ReturnValue::ListFloat32(vec![]),
+                                    DataType::Utf8 => ReturnableTerm::ListUtf8(vec![]),
+                                    DataType::Int32 => ReturnableTerm::ListInt32(vec![]),
+                                    DataType::Float32 => ReturnableTerm::ListFloat32(vec![]),
                                     _ => todo!(),
                                 }
                             }
@@ -119,31 +122,22 @@ pub fn term_from_arrow(
                                 .downcast_ref::<arrow_array::FixedSizeListArray>()
                             {
                                 match field.data_type() {
-                                    DataType::Utf8 => {
-                                        match array_to_values(&list_array.value(row_idx)) {
-                                            Ok(value) => value,
-                                            Err(_) => ReturnValue::ListUtf8(vec![]),
-                                        }
-                                    }
+                                    DataType::Utf8 => array_to_values(&list_array.value(row_idx))
+                                        .unwrap_or(ReturnableTerm::ListUtf8(vec![])),
+
                                     DataType::Float32 => {
-                                        match array_to_values(&list_array.value(row_idx)) {
-                                            Ok(value) => value,
-                                            Err(_) => ReturnValue::ListFloat32(vec![]),
-                                        }
+                                        array_to_values(&list_array.value(row_idx))
+                                            .unwrap_or(ReturnableTerm::ListFloat32(vec![]))
                                     }
-                                    DataType::Int32 => {
-                                        match array_to_values(&list_array.value(row_idx)) {
-                                            Ok(value) => value,
-                                            Err(_) => ReturnValue::ListInt32(vec![]),
-                                        }
-                                    }
+                                    DataType::Int32 => array_to_values(&list_array.value(row_idx))
+                                        .unwrap_or(ReturnableTerm::ListInt32(vec![])),
                                     _ => todo!(),
                                 }
                             } else {
                                 match field.data_type() {
-                                    DataType::Utf8 => ReturnValue::ListUtf8(vec![]),
-                                    DataType::Int32 => ReturnValue::ListInt32(vec![]),
-                                    DataType::Float32 => ReturnValue::ListFloat32(vec![]),
+                                    DataType::Utf8 => ReturnableTerm::ListUtf8(vec![]),
+                                    DataType::Int32 => ReturnableTerm::ListInt32(vec![]),
+                                    DataType::Float32 => ReturnableTerm::ListFloat32(vec![]),
                                     _ => todo!(),
                                 }
                             }
@@ -159,7 +153,7 @@ pub fn term_from_arrow(
     Ok(records)
 }
 
-fn array_to_values(array: &Arc<dyn Array>) -> Result<ReturnValue> {
+fn array_to_values(array: &Arc<dyn Array>) -> Result<ReturnableTerm> {
     // Check the data type and downcast accordingly
     match array.data_type() {
         DataType::Int32 => {
@@ -173,7 +167,7 @@ fn array_to_values(array: &Arc<dyn Array>) -> Result<ReturnValue> {
                 .map(|opt_val| opt_val.unwrap_or(0)) // Handle nulls
                 .collect();
 
-            Ok(ReturnValue::ListInt32(values))
+            Ok(ReturnableTerm::ListInt32(values))
         }
 
         DataType::Float32 => {
@@ -187,7 +181,7 @@ fn array_to_values(array: &Arc<dyn Array>) -> Result<ReturnValue> {
                 .map(|opt_val| opt_val.unwrap_or(0.0)) // Handle nulls
                 .collect();
 
-            Ok(ReturnValue::ListFloat32(values))
+            Ok(ReturnableTerm::ListFloat32(values))
         }
 
         DataType::Utf8 => {
@@ -201,7 +195,7 @@ fn array_to_values(array: &Arc<dyn Array>) -> Result<ReturnValue> {
                 .map(|opt_val| opt_val.map(|s| s.to_string()).unwrap_or_default())
                 .collect();
 
-            Ok(ReturnValue::ListUtf8(values))
+            Ok(ReturnableTerm::ListUtf8(values))
         }
 
         // Add more type handling as needed

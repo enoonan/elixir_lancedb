@@ -32,10 +32,20 @@ rustler::atoms! {
     rustler_raise_term,
     rustler_term,
 
-    // decoding atoms 
+    // decoding atoms
     filter,
     sql,
     limit,
+
+    // datatypes
+    s,
+    f,
+    u,
+    utf8,
+    timestamp_us,
+    timestamp_ns,
+    date,
+    unsupported_type,
 
 // deprecating
     tables_dropped,

@@ -28,6 +28,8 @@ defmodule ElixirLanceDB.Native do
 
   def query(_table_ref, %{} \\ %QueryRequest{}), do: err()
 
+  def add(_table_ref, _records), do: err()
+
   def to_arrow(_records, _schema), do: err()
 
   defp err(), do: :erlang.nif_error(:nif_not_loaded)

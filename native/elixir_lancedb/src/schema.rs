@@ -13,6 +13,7 @@ pub struct Field {
 impl Field {
     fn into_arrow(self) -> ArrowField {
         match self.field_type {
+            FieldType::Boolean => ArrowField::new(self.name, DataType::Boolean, self.nullable),
             FieldType::Utf8 => ArrowField::new(self.name, DataType::Utf8, self.nullable),
             FieldType::Float32 => ArrowField::new(self.name, DataType::Float32, self.nullable),
             FieldType::Int32 => ArrowField::new(self.name, DataType::Int32, self.nullable),
@@ -41,6 +42,7 @@ pub struct ChildField {
 impl ChildField {
     fn into_arrow(self) -> ArrowField {
         match self.field_type {
+            ChildFieldType::Boolean => ArrowField::new(self.name, DataType::Boolean, self.nullable),
             ChildFieldType::Utf8 => ArrowField::new(self.name, DataType::Utf8, self.nullable),
             ChildFieldType::Float32 => ArrowField::new(self.name, DataType::Float32, self.nullable),
             ChildFieldType::Int32 => ArrowField::new(self.name, DataType::Int32, self.nullable),
@@ -50,6 +52,7 @@ impl ChildField {
 
 #[derive(NifTaggedEnum, Debug, Clone)]
 pub enum FieldType {
+    Boolean,
     Utf8,
     Float32,
     Int32,
@@ -59,6 +62,7 @@ pub enum FieldType {
 
 #[derive(NifUnitEnum, Clone, Copy, Debug)]
 pub enum ChildFieldType {
+    Boolean,
     Utf8,
     Float32,
     Int32,

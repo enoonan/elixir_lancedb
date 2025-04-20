@@ -2,8 +2,9 @@ use crate::{
     atoms,
     error::{Error, Result},
     runtime::get_runtime,
+    rustler_arrow::term_to_arrow,
     schema,
-    table::TableResource, term_to_arrow,
+    table::TableResource,
 };
 use arrow_array::{RecordBatch, RecordBatchIterator};
 
@@ -81,11 +82,12 @@ fn create_table_with_data(
     erl_data: Term,
     erl_schema: schema::Schema,
 ) -> Result<()> {
-    let arrow_schema = Arc::new(erl_schema.clone().into_arrow());
-    let columnar_data = term_to_arrow::to_arrow(erl_data, erl_schema.clone())?;
+    let arrow_schema = erl_schema.into_arrow();
+    let arc_schema = Arc::new(arrow_schema.clone());
+    let columnar_data = term_to_arrow::to_arrow(erl_data, arrow_schema.clone())?;
     let batch = RecordBatchIterator::new(
-        vec![RecordBatch::try_new(arrow_schema.clone(), columnar_data)],
-        arrow_schema.clone(),
+        vec![RecordBatch::try_new(arc_schema.clone(), columnar_data)],
+        arc_schema,
     );
 
     let conn = db_conn(conn);

@@ -2,10 +2,9 @@ mod atoms;
 mod db;
 mod error;
 mod runtime;
+mod rustler_arrow;
 mod schema;
 mod table;
-mod term_from_arrow;
-mod term_to_arrow;
 
 use db::DbConnResource;
 use rustler::{Env, Term};

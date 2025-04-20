@@ -1,7 +1,16 @@
-use rustler::{Decoder, NifResult, Term};
-use std::option::Option;
+use crate::{
+    atoms,
+    error::{Error, Result},
+    runtime::get_runtime,
+    rustler_arrow::term_from_arrow::{from_arrow, ReturnableTerm},
+};
+use arrow_array::RecordBatch;
+use futures::TryStreamExt;
+use lancedb::query::{ExecutableQuery, QueryBase};
+use rustler::{Decoder, NifResult, ResourceArc, Term};
+use std::{collections::HashMap, option::Option};
 
-use crate::atoms;
+use super::{table_conn, TableResource};
 #[derive(Clone, Debug)]
 pub struct QueryRequest {
     pub filter: Option<QueryFilter>,
@@ -37,5 +46,38 @@ impl Decoder<'_> for QueryRequest {
             .and_then(|limit| limit.decode().ok().into());
 
         Ok(QueryRequest { filter, limit })
+    }
+}
+
+#[rustler::nif(schedule = "DirtyCpu")]
+fn query<'a>(
+    table: ResourceArc<TableResource>,
+    query_request: QueryRequest,
+) -> Result<Vec<HashMap<String, ReturnableTerm>>> {
+    let table = table_conn(table);
+    let result: Result<Vec<HashMap<String, ReturnableTerm>>> = get_runtime().block_on(async {
+        let schema = table.schema().await?;
+        let mut query = table.query();
+        query = match query_request.filter {
+            Some(filter) => match filter.sql {
+                Some(sql) => query.only_if(sql),
+                None => query,
+            },
+            None => query,
+        };
+
+        query = match query_request.limit {
+            Some(limit) => query.limit(limit),
+            None => query,
+        };
+
+        let results: Vec<RecordBatch> = query.execute().await?.try_collect().await?;
+
+        from_arrow(results, schema.as_ref())
+    });
+
+    match result {
+        Ok(recs) => Ok(recs),
+        Err(err) => Err(Error::from(err)),
     }
 }
