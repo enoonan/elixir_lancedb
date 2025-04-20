@@ -42,7 +42,8 @@ Roadmap:
 - [X] Hold peristent connection to table
 - [X] List items from table
 - [X] Query with SQL filter and limit
-- [ ] Add items to existing table
+- [X] Add items to existing table
+- [ ] Update items in table
 - [ ] Delete items from table
 - [ ] Vector search
 - [ ] Full text search
