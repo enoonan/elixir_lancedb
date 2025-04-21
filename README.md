@@ -43,7 +43,7 @@ Roadmap:
 - [X] List items from table
 - [X] Query with SQL filter and limit
 - [X] Add items to existing table
-- [ ] Update items in table
+- [X] Update items in table
 - [ ] Delete items from table
 - [ ] Vector search
 - [ ] Full text search

@@ -1,7 +1,7 @@
 use lancedb::Error as LanceError;
 use rustler::{Encoder, Env, Error as RustlerError, Term};
 
-use crate::atoms;
+use crate::atoms::{self};
 pub type Result<T> = core::result::Result<T, Error>;
 
 pub enum Error {

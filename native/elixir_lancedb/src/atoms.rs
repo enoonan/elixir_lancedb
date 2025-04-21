@@ -32,10 +32,11 @@ rustler::atoms! {
     rustler_raise_term,
     rustler_term,
 
-    // decoding atoms
+    // table operations
     filter,
     sql,
     limit,
+    columns,
 
     // datatypes
     s,

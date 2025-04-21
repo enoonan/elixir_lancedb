@@ -1,5 +1,7 @@
 mod add;
 mod query;
+mod update;
+
 use std::sync::{Arc, Mutex};
 
 use lancedb::Table;
