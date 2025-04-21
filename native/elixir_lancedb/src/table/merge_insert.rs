@@ -1,4 +1,4 @@
-use arrow_array::{record_batch, RecordBatch, RecordBatchIterator, RecordBatchReader};
+use arrow_array::{RecordBatch, RecordBatchIterator};
 use rustler::{Decoder, NifResult, ResourceArc, Term};
 
 use crate::{
@@ -19,10 +19,11 @@ pub struct MergeInsertConfig {
     when_not_matched_by_source_delete_filt: Option<String>,
 }
 
+#[rustler::nif(schedule = "DirtyCpu")]
 pub fn merge_insert(
     table: ResourceArc<TableResource>,
-    config: MergeInsertConfig,
     input: Term,
+    config: MergeInsertConfig,
 ) -> Result<()> {
     let table = table_conn(table);
 
@@ -31,17 +32,17 @@ pub fn merge_insert(
         let columns = to_arrow(input, (*schema).clone())?;
         let ons: Vec<&str> = config.on.iter().map(|s| s.as_str()).collect();
         let mut builder = table.merge_insert(&ons);
-        if (config.when_matched_update_all) {
+        if config.when_matched_update_all {
             builder = builder
                 .when_matched_update_all(config.when_matched_update_all_filt)
                 .clone();
         }
 
-        if (config.when_not_matched_insert_all) {
+        if config.when_not_matched_insert_all {
             builder = builder.when_not_matched_insert_all().clone();
         }
 
-        if (config.when_not_matched_by_source_delete) {
+        if config.when_not_matched_by_source_delete {
             builder = builder
                 .when_not_matched_by_source_delete(config.when_not_matched_by_source_delete_filt)
                 .clone();
@@ -83,12 +84,12 @@ impl Decoder<'_> for MergeInsertConfig {
             .and_then(|s| s.decode().ok());
 
         Ok(MergeInsertConfig {
-            on: on,
-            when_matched_update_all: when_matched_update_all,
-            when_matched_update_all_filt: when_matched_update_all_filt,
-            when_not_matched_insert_all: when_not_matched_insert_all,
-            when_not_matched_by_source_delete: when_not_matched_by_source_delete,
-            when_not_matched_by_source_delete_filt: when_not_matched_by_source_delete_filt,
+            on,
+            when_matched_update_all,
+            when_matched_update_all_filt,
+            when_not_matched_insert_all,
+            when_not_matched_by_source_delete,
+            when_not_matched_by_source_delete_filt,
         })
     }
 }

@@ -1,4 +1,5 @@
 defmodule ElixirLanceDB.Native do
+  alias ElixirLanceDB.Native.Table.MergeInsertConfig
   alias ElixirLanceDB.Native.Table.UpdateConfig
   alias ElixirLanceDB.Native.Table.QueryRequest
   alias ElixirLanceDB.Native.Schema
@@ -32,6 +33,10 @@ defmodule ElixirLanceDB.Native do
   def add(_table_ref, _records), do: err()
 
   def update(_table_ref, %UpdateConfig{} = _update_cfg), do: err()
+
+  def delete(_table_ref, predicate) when is_binary(predicate), do: err()
+
+  def merge_insert(_table_ref, _records, %MergeInsertConfig{} \\ %MergeInsertConfig{}), do: err()
 
   def to_arrow(_records, _schema), do: err()
 

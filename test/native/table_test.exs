@@ -69,6 +69,20 @@ defmodule ElixirNativeDB.Native.TableTest do
       {:ok, [apple]} = apple_query(fruits)
       assert(apple["avg_weight_oz"] == 0.0)
     end
+
+    test "it can delete a record", %{table: fruits} do
+      fruits |> Native.delete("id = 123")
+      {:ok, [result]} = fruits |> Native.query()
+      assert result["name"] == "banana"
+    end
+
+    test "it can delete multiple records", %{table: fruits} do
+      fruits |> Native.add(new_fruits())
+      fruits |> Native.delete("name in ('apple', 'banana')")
+      {:ok, results} = fruits |> Native.query()
+      assert results |> length() == 2
+      refute results |> Enum.any?(& &1["name"] in ["apple", "banana"])
+    end
   end
 
   defp apple_query(fruits) do

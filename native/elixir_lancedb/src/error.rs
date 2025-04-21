@@ -1,12 +1,11 @@
 use crate::atoms::{self};
-use arrow_ipc::Message;
 use arrow_schema::ArrowError;
 use lancedb::Error as LanceError;
 use rustler::{Encoder, Env, Error as RustlerError, Term};
-use std::io::Error as StdErr;
 pub type Result<T> = core::result::Result<T, Error>;
 
 pub enum Error {
+    InvalidInput { message: String },
     Other { message: String },
 
     // Rustler Errors
@@ -46,7 +45,7 @@ pub enum Error {
     ArrowArithmeticOverflow { message: String },
     ArrowCsvError { message: String },
     ArrowJsonError { message: String },
-    ArrowIoError { message: String, error: StdErr },
+    ArrowIoError { message: String, error: String },
     ArrowIpcError { message: String },
     ArrowInvalidArgumentError { message: String },
     ArrowParquetError { message: String },
@@ -131,7 +130,7 @@ impl From<ArrowError> for Error {
             ArrowError::JsonError(msg) => Error::ArrowJsonError { message: msg },
             ArrowError::IoError(msg, error) => Error::ArrowIoError {
                 message: msg,
-                error: error,
+                error: error.to_string(),
             },
             ArrowError::IpcError(msg) => Error::ArrowIpcError { message: msg },
             ArrowError::InvalidArgumentError(msg) => {
@@ -156,7 +155,7 @@ impl Encoder for Error {
     fn encode<'a>(&self, env: Env<'a>) -> Term<'a> {
         let error_tuple = match self {
             Error::Other { message } => (atoms::lance_other(), message.to_string()),
-
+            Error::InvalidInput { message } => (atoms::invalid_input(), message.to_string()),
             // Lance
             Error::LanceInvalidTableName { name, reason } => (
                 atoms::lance_invalid_table_name(),

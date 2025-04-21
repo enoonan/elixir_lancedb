@@ -44,7 +44,7 @@ Roadmap:
 - [X] Query with SQL filter and limit
 - [X] Add items to existing table
 - [X] Update items in table
-- [ ] Delete items from table
+- [X] Delete items from table
 - [ ] Vector search
 - [ ] Full text search
 - [ ] Hybrid Vector + Full Text search
@@ -61,9 +61,13 @@ Having successfully checked off our first couple roadmap items, to the best of m
 
 ---
 
-Influences:
-Elixir Explorer, arrow-elixir, snowflake_arrow, Polars
-https://github.com/jorgecarleitao/arrow2/discussions/1033
+Thanks to:
+ * The folks on the LanceDB discord for guidance and encouraging emojis
+ * Elixir Explorer
+ * arrow-elixir
+ * snowflake_arrow
+ * Polars
+ * This convo: https://github.com/jorgecarleitao/arrow2/discussions/1033
 
 
 

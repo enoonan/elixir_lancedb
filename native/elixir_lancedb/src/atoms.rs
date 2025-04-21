@@ -4,6 +4,7 @@ rustler::atoms! {
     error,
     name,
     reason,
+    invalid_input,
 
     // Lance Errors
     lance_invalid_table_name,
@@ -81,7 +82,7 @@ rustler::atoms! {
     date,
     unsupported_type,
 
-// deprecating
+    // deprecating
     tables_dropped,
     table_dropped,
     created_table
