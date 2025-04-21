@@ -81,9 +81,4 @@ rustler::atoms! {
     timestamp_ns,
     date,
     unsupported_type,
-
-    // deprecating
-    tables_dropped,
-    table_dropped,
-    created_table
 }

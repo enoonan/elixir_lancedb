@@ -1,5 +1,4 @@
 use crate::{
-    atoms,
     error::{Error, Result},
     runtime::get_runtime,
     rustler_arrow::{schema, term_to_arrow},
@@ -8,52 +7,57 @@ use crate::{
 use arrow_array::{RecordBatch, RecordBatchIterator};
 
 use lancedb::{Connection, Table};
-use rustler::{Atom, ResourceArc, Term};
+use rustler::{ResourceArc, Term};
 
 use std::sync::{Arc, Mutex};
 pub struct DbConnResource(pub Arc<Mutex<Connection>>);
 
 #[rustler::nif(schedule = "DirtyCpu")]
 fn connect(uri: String) -> Result<ResourceArc<DbConnResource>> {
-    let result = get_runtime().block_on(async { lancedb::connect(&uri).execute().await });
+    let result = get_runtime().block_on(async {
+        let conn = lancedb::connect(&uri).execute().await?;
+        Ok::<Connection, Error>(conn)
+    })?;
 
-    match result {
-        Ok(conn) => Ok(ResourceArc::new(DbConnResource(Arc::new(Mutex::new(conn))))),
-        Err(err) => Err(Error::from(err)),
-    }
+    let conn_resource = DbConnResource(Arc::new(Mutex::new(result)));
+
+    Ok(ResourceArc::new(conn_resource))
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
 fn table_names(conn: ResourceArc<DbConnResource>) -> Result<Vec<String>> {
     let conn = db_conn(conn);
-    let result = get_runtime().block_on(async { conn.table_names().execute().await });
 
-    match result {
-        Ok(names) => Ok(names),
-        Err(err) => Err(Error::from(err)),
-    }
+    let result = get_runtime().block_on(async {
+        let names = conn.table_names().execute().await?;
+        Ok::<Vec<String>, Error>(names)
+    })?;
+
+    Ok(result)
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
 fn drop_all_tables(conn: ResourceArc<DbConnResource>) -> Result<()> {
     let conn = db_conn(conn);
-    let result = get_runtime().block_on(async { conn.drop_all_tables().await });
 
-    match result {
-        Ok(_) => Ok(()),
-        Err(err) => Err(Error::from(err)),
-    }
+    get_runtime().block_on(async {
+        conn.drop_all_tables().await?;
+        Ok::<(), Error>(())
+    })?;
+
+    Ok(())
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
-fn drop_table(conn: ResourceArc<DbConnResource>, table_name: String) -> Result<Atom> {
+fn drop_table(conn: ResourceArc<DbConnResource>, table_name: String) -> Result<()> {
     let conn = db_conn(conn);
-    let result = get_runtime().block_on(async { conn.drop_table(&table_name).await });
 
-    match result {
-        Ok(_) => Ok(atoms::tables_dropped()),
-        Err(err) => Err(Error::from(err)),
-    }
+    get_runtime().block_on(async {
+        conn.drop_table(&table_name).await?;
+        Ok::<(), Error>(())
+    })?;
+
+    Ok(())
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
@@ -61,26 +65,30 @@ fn create_empty_table(
     conn: ResourceArc<DbConnResource>,
     table_name: String,
     schema: schema::Schema,
-) -> Result<()> {
+) -> Result<ResourceArc<TableResource>> {
     let conn = db_conn(conn);
-    let result = get_runtime().block_on(async {
-        conn.create_empty_table(table_name, Arc::new(schema.into_arrow()))
-            .execute()
-            .await
-    });
 
-    match result {
-        Ok(_) => Ok(()),
-        Err(err) => Err(Error::from(err)),
-    }
+    let table = get_runtime().block_on(async {
+        let table = conn
+            .create_empty_table(table_name, Arc::new(schema.into_arrow()))
+            .execute()
+            .await?;
+
+        Ok::<Table, Error>(table)
+    })?;
+
+    let table_arc = TableResource(Arc::new(Mutex::new(table)));
+
+    Ok(ResourceArc::new(table_arc))
 }
+
 #[rustler::nif(schedule = "DirtyCpu")]
 fn create_table_with_data(
     conn: ResourceArc<DbConnResource>,
     table_name: String,
     erl_data: Term,
     erl_schema: schema::Schema,
-) -> Result<()> {
+) -> Result<ResourceArc<TableResource>> {
     let arrow_schema = erl_schema.into_arrow();
     let arc_schema = Arc::new(arrow_schema.clone());
     let columnar_data = term_to_arrow::to_arrow(erl_data, arrow_schema.clone())?;
@@ -90,15 +98,17 @@ fn create_table_with_data(
     );
 
     let conn = db_conn(conn);
-    let result = get_runtime().block_on(async {
-        conn.create_table(table_name, Box::new(batch))
+    let table = get_runtime().block_on(async {
+        let table = conn
+            .create_table(table_name, Box::new(batch))
             .execute()
-            .await
-    });
-    match result {
-        Ok(_) => Ok(()),
-        Err(err) => Err(Error::from(err)),
-    }
+            .await?;
+        Ok::<Table, Error>(table)
+    })?;
+
+    let table_arc = TableResource(Arc::new(Mutex::new(table)));
+
+    Ok(ResourceArc::new(table_arc))
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
@@ -107,17 +117,14 @@ fn open_table(
     table_name: String,
 ) -> Result<ResourceArc<TableResource>> {
     let conn = db_conn(conn);
-    let result: Result<Table> = get_runtime().block_on(async {
-        conn.open_table(table_name)
-            .execute()
-            .await
-            .map_err(|e| Error::from(e))
-    });
+    let table = get_runtime().block_on(async {
+        let table = conn.open_table(table_name).execute().await?;
+        Ok::<Table, Error>(table)
+    })?;
 
-    match result {
-        Ok(table) => Ok(ResourceArc::new(TableResource(Arc::new(Mutex::new(table))))),
-        Err(err) => Err(err),
-    }
+    let table_arc = TableResource(Arc::new(Mutex::new(table)));
+
+    Ok(ResourceArc::new(table_arc))
 }
 
 pub fn db_conn(conn_resource: ResourceArc<DbConnResource>) -> Connection {

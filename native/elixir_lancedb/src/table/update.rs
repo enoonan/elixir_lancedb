@@ -26,17 +26,15 @@ pub fn update(table: ResourceArc<TableResource>, update_config: UpdateConfig) ->
     let table = table_conn(table);
     let result = get_runtime().block_on(async {
         let mut update = table.update();
+
         update = match update_config.filter {
             Some(filter) => update.only_if(filter),
             None => update,
         };
 
-        let update = update_config.columns.iter().fold(
-            update,
-            |update_acc: UpdateBuilder, op: &ColumnOperation| {
-                update_acc.column(&op.column, &op.operation)
-            },
-        );
+        let update = update_config.columns.iter().fold(update, |update_acc, op| {
+            update_acc.column(&op.column, &op.operation)
+        });
 
         let num_rows_affected = update.execute().await?;
 
