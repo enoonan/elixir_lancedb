@@ -2,28 +2,30 @@ rustler::atoms! {
     // Results and errors (mostly Lance error types)
     ok,
     error,
-    invalid_table_name,
     name,
     reason,
-    invalid_input,
-    message,
-    table_not_found,
-    unknown,
-    database_not_found,
-    database_already_exists,
-    index_not_found,
-    embedding_function_not_found,
-    table_already_exists,
-    create_dir,
-    schema,
-    runtime,
-    object_store,
+
+    // Lance Errors
+    lance_invalid_table_name,
+    lance_invalid_input,
+    lance_message,
+    lance_table_not_found,
+    lance_unknown,
+    lance_database_not_found,
+    lance_database_already_exists,
+    lance_index_not_found,
+    lance_embedding_function_not_found,
+    lance_table_already_exists,
+    lance_create_dir,
+    lance_schema,
+    lance_runtime,
+    lance_object_store,
     lance,
-    arrow,
-    not_supported,
-    path,
-    source,
-    other,
+    lance_arrow,
+    lance_not_supported,
+    lance_path,
+    lance_source,
+    lance_other,
 
     // Rustler-specific errors
     rustler_bad_arg,
@@ -32,11 +34,42 @@ rustler::atoms! {
     rustler_raise_term,
     rustler_term,
 
+    // Arrow-specific errors
+    arrow_not_yet_implemented,
+    arrow_external_error,
+    arrow_cast_error,
+    arrow_memory_error,
+    arrow_parse_error,
+    arrow_schema_error,
+    arrow_compute_error,
+    arrow_divide_by_zero,
+    arrow_arithmetic_overflow,
+    arrow_csv_error,
+    arrow_json_error,
+    arrow_io_error,
+    arrow_ipc_error,
+    arrow_invalid_argument_error,
+    arrow_parquet_error,
+    arrow_cdata_interface,
+    arrow_dictionary_key_overflow_error,
+    arrow_run_end_index_overflow_error,
+
+
+
     // table operations
     filter,
     sql,
     limit,
     columns,
+
+    // table merge insert config
+    on,
+    when_matched_update_all,
+    when_matched_update_all_filt,
+    when_not_matched_insert_all,
+    when_not_matched_by_source_delete,
+    when_not_matched_by_source_delete_filt,
+
 
     // datatypes
     s,

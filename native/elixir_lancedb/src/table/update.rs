@@ -21,23 +21,6 @@ pub struct ColumnOperation {
     pub operation: String,
 }
 
-impl Decoder<'_> for UpdateConfig {
-    fn decode(term: Term) -> NifResult<Self> {
-        let filter: Option<String> = term
-            .map_get(atoms::filter())
-            .ok()
-            .and_then(|s| s.decode().ok());
-
-        let columns: Vec<ColumnOperation> =
-            term.map_get(atoms::columns()).and_then(|s| s.decode())?;
-
-        Ok(UpdateConfig {
-            filter: filter,
-            columns: columns,
-        })
-    }
-}
-
 #[rustler::nif(schedule = "DirtyCpu")]
 pub fn update(table: ResourceArc<TableResource>, update_config: UpdateConfig) -> Result<u64> {
     let table = table_conn(table);
@@ -61,4 +44,21 @@ pub fn update(table: ResourceArc<TableResource>, update_config: UpdateConfig) ->
     })?;
 
     Ok(result)
+}
+
+impl Decoder<'_> for UpdateConfig {
+    fn decode(term: Term) -> NifResult<Self> {
+        let filter: Option<String> = term
+            .map_get(atoms::filter())
+            .ok()
+            .and_then(|s| s.decode().ok());
+
+        let columns: Vec<ColumnOperation> =
+            term.map_get(atoms::columns()).and_then(|s| s.decode())?;
+
+        Ok(UpdateConfig {
+            filter: filter,
+            columns: columns,
+        })
+    }
 }

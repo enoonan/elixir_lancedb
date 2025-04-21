@@ -1,6 +1,7 @@
 mod add;
 mod query;
 mod update;
+mod merge_insert;
 
 use std::sync::{Arc, Mutex};
 
