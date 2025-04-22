@@ -1,5 +1,7 @@
 mod add;
+mod count_rows;
 mod delete;
+mod index;
 mod merge_insert;
 mod query;
 mod update;
@@ -8,6 +10,7 @@ use std::sync::{Arc, Mutex};
 
 use lancedb::Table;
 use rustler::ResourceArc;
+
 pub struct TableResource(pub Arc<Mutex<Table>>);
 
 fn table_conn(table_resource: ResourceArc<TableResource>) -> Table {

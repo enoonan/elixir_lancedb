@@ -1,4 +1,3 @@
-use lancedb::table::UpdateBuilder;
 use rustler::{Decoder, NifResult, NifStruct, ResourceArc, Term};
 
 use crate::{

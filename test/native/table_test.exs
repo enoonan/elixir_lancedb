@@ -1,6 +1,7 @@
 defmodule ElixirNativeDB.Native.TableTest do
   use ExUnit.Case
 
+  alias ElixirLanceDB.Native.Table.Index
   alias ElixirLanceDB.Native
   alias ElixirLanceDB.Native.Table.QueryRequest, as: QR
   alias ElixirLanceDB.Native.Table.UpdateConfig, as: UpCfg
@@ -13,7 +14,12 @@ defmodule ElixirNativeDB.Native.TableTest do
     %{table: fruits}
   end
 
-  describe "Table :: Read ::" do
+  describe "Table :: CRUD ::" do
+    test "it can count rows", %{table: fruits} do
+      assert {:ok, 2} == fruits |> Native.count_rows()
+      assert {:ok, 1} == fruits |> Native.count_rows("name = 'apple'")
+    end
+
     test "it can scan for full table results", %{table: fruits} do
       {:ok, results} = fruits |> Native.query()
 
@@ -81,7 +87,36 @@ defmodule ElixirNativeDB.Native.TableTest do
       fruits |> Native.delete("name in ('apple', 'banana')")
       {:ok, results} = fruits |> Native.query()
       assert results |> length() == 2
-      refute results |> Enum.any?(& &1["name"] in ["apple", "banana"])
+      refute results |> Enum.any?(&(&1["name"] in ["apple", "banana"]))
+    end
+  end
+
+  describe "Table :: Indices ::" do
+    test "it can list indices", %{table: fruits} do
+      assert {:ok, []} == fruits |> Native.list_indices()
+    end
+
+    test "it can create an auto index", %{table: fruits} do
+      {result, _} = fruits |> Native.create_index(["name"])
+      assert result == :ok
+
+      assert fruits |> Native.list_indices() ==
+               {:ok, [%{name: "name_idx", columns: ["name"], index_type: :btree}]}
+    end
+
+    test "it can create other simple index types", %{table: fruits} do
+      {result1, _} = fruits |> Native.create_index(["name"], Index.btree())
+      {result2, _} = fruits |> Native.create_index(["id"], Index.bitmap())
+      {result3, _} = fruits |> Native.create_index(["types"], Index.label_list())
+      assert [result1, result2, result3] |> Enum.all?(&(&1 == :ok))
+
+      assert fruits |> Native.list_indices() ==
+               {:ok,
+                [
+                  %{columns: ["name"], index_type: :btree, name: "name_idx"},
+                  %{columns: ["id"], index_type: :bitmap, name: "id_idx"},
+                  %{columns: ["types"], index_type: :label_list, name: "types_idx"}
+                ]}
     end
   end
 

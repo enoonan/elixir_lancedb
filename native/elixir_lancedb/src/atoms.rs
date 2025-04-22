@@ -62,6 +62,10 @@ rustler::atoms! {
     sql,
     limit,
     columns,
+    
+    // Index Config
+    config,
+    field,
 
     // table merge insert config
     on,
@@ -71,6 +75,16 @@ rustler::atoms! {
     when_not_matched_by_source_delete,
     when_not_matched_by_source_delete_filt,
 
+    // Index Type
+    index_type,
+    ivf_flat,
+    ivf_pq,
+    ivf_hnsw_pq,
+    ivf_hnsw_sq,
+    btree,
+    bitmap,
+    label_list,
+    fts,
 
     // datatypes
     s,

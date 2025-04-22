@@ -1,7 +1,6 @@
 defmodule ElixirLanceDB.Native do
-  alias ElixirLanceDB.Native.Table.MergeInsertConfig
-  alias ElixirLanceDB.Native.Table.UpdateConfig
-  alias ElixirLanceDB.Native.Table.QueryRequest
+  alias ElixirLanceDB.Native.Table.Index.{Auto, BTree, Bitmap, LabelList}
+  alias ElixirLanceDB.Native.Table.{MergeInsertConfig, UpdateConfig, QueryRequest}
   alias ElixirLanceDB.Native.Schema
   use Rustler, otp_app: :elixir_lancedb, crate: "elixir_lancedb"
 
@@ -28,6 +27,8 @@ defmodule ElixirLanceDB.Native do
 
   def open_table(_conn, _table_name), do: err()
 
+  def count_rows(_conn, filter \\ "") when is_binary(filter), do: err()
+
   def query(_table_ref, %QueryRequest{} \\ %QueryRequest{}), do: err()
 
   def add(_table_ref, _records), do: err()
@@ -37,6 +38,14 @@ defmodule ElixirLanceDB.Native do
   def delete(_table_ref, predicate) when is_binary(predicate), do: err()
 
   def merge_insert(_table_ref, _records, %MergeInsertConfig{} \\ %MergeInsertConfig{}), do: err()
+
+  def list_indices(_table_ref), do: err()
+
+  def create_index(_table_ref, fields, cfg \\ %Auto{})
+  def create_index(_table_ref, fields, %Auto{}) when is_list(fields), do: err()
+  def create_index(_table_ref, fields, %BTree{}) when is_list(fields), do: err()
+  def create_index(_table_ref, fields, %Bitmap{}) when is_list(fields), do: err()
+  def create_index(_table_ref, fields, %LabelList{}) when is_list(fields), do: err()
 
   def to_arrow(_records, _schema), do: err()
 
