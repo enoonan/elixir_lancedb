@@ -19,6 +19,14 @@ defmodule ElixirLanceDB.Native.VectorTableTest do
       assert vectors |> Native.list_indices() ==
                {:ok, [%{name: "vector_idx", columns: ["vector"], index_type: :ivf_pq}]}
     end
+
+    test "it can create a full text search index", %{table: vectors} do
+      {result, _} = vectors |> Native.create_index(["content"], Index.fts())
+      assert result == :ok
+
+      assert vectors |> Native.list_indices() ==
+               {:ok, [%{name: "content_idx", columns: ["content"], index_type: :fts}]}
+    end
   end
 
   defp create_rows(num \\ 256, dim_times_8 \\ 2) when is_integer(num) do

@@ -1,5 +1,7 @@
+mod fts;
 mod ivf_pq;
 
+use fts::FtsIndexBuilderConfig;
 use ivf_pq::IvfPqIndexBuilderConfig;
 use lancedb::{
     index::{
@@ -24,7 +26,7 @@ pub enum IndexConfig {
     BTree,
     Bitmap,
     LabelList,
-    // FullTextSearch(FtsIndexBuilderConfig),
+    FullTextSearch(FtsIndexBuilderConfig),
     // IvfFlat(IvfFlatIndexBuilderConfig),
     IvfPq(IvfPqIndexBuilderConfig),
     // IvfHnswPq(IvfHnswPqIndexBuilderConfig),
@@ -39,24 +41,10 @@ impl Into<Index> for IndexConfig {
             IndexConfig::Bitmap => Index::Bitmap(BitmapIndexBuilder {}),
             IndexConfig::LabelList => Index::LabelList(LabelListIndexBuilder {}),
             IndexConfig::IvfPq(cfg) => Index::IvfPq(cfg.into()),
+            IndexConfig::FullTextSearch(cfg) => Index::FTS(cfg.into()),
         }
     }
 }
-
-// pub struct FtsIndexBuilderConfig {
-//     pub with_position: bool,
-//     pub tokenizer_configs: TokenizerConfig,
-// }
-
-// pub struct TokenizerConfig {
-//     pub base_tokenizer: String,
-//     pub language: tantivy::tokenizer::Language,
-//     pub max_token_length: Option<usize>,
-//     pub lower_case: bool,
-//     pub stem: bool,
-//     pub remove_stop_words: bool,
-//     pub ascii_folding: bool,
-// }
 
 #[derive(Debug)]
 pub enum DistanceType {
@@ -120,6 +108,7 @@ impl Decoder<'_> for IndexConfig {
             "bitmap" => IndexConfig::Bitmap,
             "label_list" => IndexConfig::LabelList,
             "ivf_pq" => IndexConfig::IvfPq(term.decode::<IvfPqIndexBuilderConfig>()?.into()),
+            "fts" => IndexConfig::FullTextSearch(term.decode::<FtsIndexBuilderConfig>()?.into()),
             _ => todo!("not implemented"),
         };
 
@@ -179,8 +168,6 @@ pub fn create_index(
     get_runtime().block_on(async {
         let idx_builder = table.create_index(&fields, index_cfg.into());
         idx_builder.execute().await?;
-        // let idxs = table.list_indices().await?;
-        // println!("{:?}", idxs);
         Ok::<(), Error>(())
     })?;
 

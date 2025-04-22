@@ -92,6 +92,17 @@ rustler::atoms! {
     num_subvectors,
     num_bits,
 
+    // fts index and tokenizer params
+    with_position,
+    tokenizer_configs,
+    base_tokenizer,
+    language,
+    max_token_length,
+    lower_case,
+    stem,
+    remove_stop_words,
+    ascii_folding,
+
     // datatypes
     s,
     f,
