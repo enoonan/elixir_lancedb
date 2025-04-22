@@ -62,7 +62,7 @@ rustler::atoms! {
     sql,
     limit,
     columns,
-    
+
     // Index Config
     config,
     field,
@@ -85,6 +85,12 @@ rustler::atoms! {
     bitmap,
     label_list,
     fts,
+    sample_rate,
+    distance_index_type,
+    num_partitions,
+    max_iterations,
+    num_subvectors,
+    num_bits,
 
     // datatypes
     s,

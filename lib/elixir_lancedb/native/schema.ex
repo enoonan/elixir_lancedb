@@ -39,8 +39,8 @@ defmodule ElixirLanceDB.Native.Schema do
     field
   end
 
-  defp try_fixed_size_upgrade(%Field{} = field, sample) do
-    %{name: name, field_type: {:list, child_type}} = field
+  defp try_fixed_size_upgrade(%Field{field_type: {:list, child_type}} = field, sample) do
+    %{name: name} = field
     sample = sample |> ensure_str_keys()
     [hd | _rest] = sample
 
@@ -50,12 +50,14 @@ defmodule ElixirLanceDB.Native.Schema do
       %Field{
         name: field.name,
         field_type: {:fixed_size_list, child_type, dimension},
-        nullable: false
+        nullable: true
       }
     else
       field
     end
   end
+
+  defp try_fixed_size_upgrade(%Field{} = field, _sample), do: field
 
   defp can_upgrade?([hd | rest]) do
     hd_len = hd |> length()

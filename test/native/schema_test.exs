@@ -46,7 +46,7 @@ defmodule ElixirLanceDB.Native.SchemaTest do
                %ElixirLanceDB.Native.Schema.Field{
                  name: "foo",
                  field_type: {:fixed_size_list, Field.float32("item"), 3},
-                 nullable: false
+                 nullable: true
                }
              ]
     end

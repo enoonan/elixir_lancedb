@@ -1,7 +1,20 @@
-use lancedb::index::{scalar::{BTreeIndexBuilder, BitmapIndexBuilder, LabelListIndexBuilder}, Index, IndexConfig as LanceIndexConfig, IndexType};
+mod ivf_pq;
+
+use ivf_pq::IvfPqIndexBuilderConfig;
+use lancedb::{
+    index::{
+        scalar::{BTreeIndexBuilder, BitmapIndexBuilder, LabelListIndexBuilder},
+        Index, IndexConfig as LanceIndexConfig, IndexType,
+    },
+    DistanceType as LanceDistanceType,
+};
 use rustler::{Decoder, Encoder, NifResult, ResourceArc, Term};
 
-use crate::{atoms, error::{Error, Result}, runtime::get_runtime};
+use crate::{
+    atoms,
+    error::{Error, Result},
+    runtime::get_runtime,
+};
 
 use super::{table_conn, TableResource};
 
@@ -13,7 +26,7 @@ pub enum IndexConfig {
     LabelList,
     // FullTextSearch(FtsIndexBuilderConfig),
     // IvfFlat(IvfFlatIndexBuilderConfig),
-    // IvfPq(IvfPqIndexBuilderConfig),
+    IvfPq(IvfPqIndexBuilderConfig),
     // IvfHnswPq(IvfHnswPqIndexBuilderConfig),
     // IvfHnswSq(IvfHnswSqIndexBuilderConfig),
 }
@@ -22,9 +35,10 @@ impl Into<Index> for IndexConfig {
     fn into(self) -> Index {
         match self {
             IndexConfig::Auto => Index::Auto,
-            IndexConfig::BTree => Index::BTree(BTreeIndexBuilder{}),
-            IndexConfig::Bitmap => Index::Bitmap(BitmapIndexBuilder{}),
-            IndexConfig::LabelList => Index::LabelList(LabelListIndexBuilder{})
+            IndexConfig::BTree => Index::BTree(BTreeIndexBuilder {}),
+            IndexConfig::Bitmap => Index::Bitmap(BitmapIndexBuilder {}),
+            IndexConfig::LabelList => Index::LabelList(LabelListIndexBuilder {}),
+            IndexConfig::IvfPq(cfg) => Index::IvfPq(cfg.into()),
         }
     }
 }
@@ -44,30 +58,30 @@ impl Into<Index> for IndexConfig {
 //     pub ascii_folding: bool,
 // }
 
-// pub enum DistanceType {
-//     L2,
-//     Cosine,
-//     Dot,
-//     Hamming,
-// }
+#[derive(Debug)]
+pub enum DistanceType {
+    L2,
+    Cosine,
+    Dot,
+    Hamming,
+}
+
+impl Into<LanceDistanceType> for DistanceType {
+    fn into(self) -> LanceDistanceType {
+        match self {
+            DistanceType::L2 => LanceDistanceType::L2,
+            DistanceType::Cosine => LanceDistanceType::Cosine,
+            DistanceType::Dot => LanceDistanceType::Dot,
+            DistanceType::Hamming => LanceDistanceType::Hamming,
+        }
+    }
+}
 
 // pub struct IvfFlatIndexBuilderConfig {
 //     pub distance_type: DistanceType,
 //     pub num_partitions: Option<u32>,
 //     pub sample_rate: u32,
 //     pub max_iterations: u32,
-// }
-
-// pub struct IvfPqIndexBuilderConfig {
-//     // IVF
-//     pub distance_type: DistanceType,
-//     pub num_partitions: Option<u32>,
-//     pub sample_rate: u32,
-//     pub max_iterations: u32,
-
-//     // PQ
-//     pub num_sub_vectors: Option<u32>,
-//     pub num_bits: Option<u32>,
 // }
 
 // pub struct IvfHnswPqIndexBuilderConfig {
@@ -105,7 +119,8 @@ impl Decoder<'_> for IndexConfig {
             "btree" => IndexConfig::BTree,
             "bitmap" => IndexConfig::Bitmap,
             "label_list" => IndexConfig::LabelList,
-            _ => todo!("not implemented")
+            "ivf_pq" => IndexConfig::IvfPq(term.decode::<IvfPqIndexBuilderConfig>()?.into()),
+            _ => todo!("not implemented"),
         };
 
         Ok(result)
@@ -124,32 +139,42 @@ impl Encoder for ReturnableIndexConfig {
             IndexType::IvfHnswPq => atoms::ivf_hnsw_pq(),
             IndexType::IvfHnswSq => atoms::ivf_hnsw_sq(),
             IndexType::IvfPq => atoms::ivf_pq(),
-            IndexType::LabelList => atoms::label_list()
+            IndexType::LabelList => atoms::label_list(),
         };
 
         let mut map = Term::map_new(env);
         map = map.map_put(atoms::index_type(), index_type).unwrap_or(map);
-        map = map.map_put(atoms::name(), self.0.name.encode(env)).unwrap_or(map);
-        map = map.map_put(atoms::columns(), self.0.columns.encode(env)).unwrap_or(map);
+        map = map
+            .map_put(atoms::name(), self.0.name.encode(env))
+            .unwrap_or(map);
+        map = map
+            .map_put(atoms::columns(), self.0.columns.encode(env))
+            .unwrap_or(map);
         map
     }
 }
-
 
 #[rustler::nif(schedule = "DirtyCpu")]
 pub fn list_indices(table: ResourceArc<TableResource>) -> Result<Vec<ReturnableIndexConfig>> {
     let table = table_conn(table);
     let indices = get_runtime().block_on(async {
-        let idcs = table.list_indices().await?.iter().map(|idx_cfg: &LanceIndexConfig| {
-            ReturnableIndexConfig(idx_cfg.clone())
-        }).collect();
+        let idcs = table
+            .list_indices()
+            .await?
+            .iter()
+            .map(|idx_cfg: &LanceIndexConfig| ReturnableIndexConfig(idx_cfg.clone()))
+            .collect();
         Ok::<Vec<ReturnableIndexConfig>, Error>(idcs)
-    })?;      
+    })?;
     Ok(indices)
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
-pub fn create_index(table: ResourceArc<TableResource>, fields: Vec<String>, index_cfg: IndexConfig) -> Result<()> {
+pub fn create_index(
+    table: ResourceArc<TableResource>,
+    fields: Vec<String>,
+    index_cfg: IndexConfig,
+) -> Result<()> {
     let table = table_conn(table);
     get_runtime().block_on(async {
         let idx_builder = table.create_index(&fields, index_cfg.into());
@@ -158,6 +183,6 @@ pub fn create_index(table: ResourceArc<TableResource>, fields: Vec<String>, inde
         // println!("{:?}", idxs);
         Ok::<(), Error>(())
     })?;
-    
+
     Ok(())
 }
