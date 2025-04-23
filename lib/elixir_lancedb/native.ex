@@ -1,6 +1,13 @@
 defmodule ElixirLanceDB.Native do
   alias ElixirLanceDB.Native.Table.Index.{Auto, BTree, Bitmap, LabelList, IvfPq, FTS}
-  alias ElixirLanceDB.Native.Table.{MergeInsertConfig, UpdateConfig, QueryRequest}
+
+  alias ElixirLanceDB.Native.Table.{
+    MergeInsertConfig,
+    UpdateConfig,
+    QueryRequest,
+    VectorQueryRequest
+  }
+
   alias ElixirLanceDB.Native.Schema
   use Rustler, otp_app: :elixir_lancedb, crate: "elixir_lancedb"
 
@@ -48,6 +55,8 @@ defmodule ElixirLanceDB.Native do
   def create_index(_table_ref, fields, %LabelList{}) when is_list(fields), do: err()
   def create_index(_table_ref, fields, %IvfPq{}) when is_list(fields), do: err()
   def create_index(_table_ref, fields, %FTS{}) when is_list(fields), do: err()
+
+  def vector_search(_table_ref, %VectorQueryRequest{}), do: err()
 
   def to_arrow(_records, _schema), do: err()
 

@@ -45,10 +45,9 @@ Roadmap:
 - [X] Add items to existing table
 - [X] Update items in table
 - [X] Delete items from table
-- [ ] Vector search
+- [X] Vector search
 - [ ] Full text search
 - [ ] Hybrid Vector + Full Text search
-- [ ] Update table items
 - [ ] Modify table schema 
 - [ ] Manage connections using a pool - maybe just for writes
 - [ ] Cleanup/Compaction strategies

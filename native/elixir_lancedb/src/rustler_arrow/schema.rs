@@ -1,5 +1,5 @@
 use arrow_schema::{DataType, Field as ArrowField};
-use rustler::{NifStruct, NifTaggedEnum, NifUnitEnum};
+use rustler::{Decoder, NifStruct, NifTaggedEnum, NifUnitEnum};
 use std::{collections::HashMap, sync::Arc};
 
 #[derive(NifStruct, Clone)]

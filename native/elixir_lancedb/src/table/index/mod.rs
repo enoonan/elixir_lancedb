@@ -46,7 +46,7 @@ impl Into<Index> for IndexConfig {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum DistanceType {
     L2,
     Cosine,
@@ -62,6 +62,20 @@ impl Into<LanceDistanceType> for DistanceType {
             DistanceType::Dot => LanceDistanceType::Dot,
             DistanceType::Hamming => LanceDistanceType::Hamming,
         }
+    }
+}
+
+impl Decoder<'_> for DistanceType {
+    fn decode(term: Term<'_>) -> NifResult<Self> {
+        let distance_type = match term.atom_to_string()?.as_str() {
+            "l2" => Ok(DistanceType::L2),
+            "cosine" => Ok(DistanceType::Cosine),
+            "dot" => Ok(DistanceType::Dot),
+            "hamming" => Ok(DistanceType::Hamming),
+            _ => Err(rustler::Error::BadArg),
+        }?;
+
+        Ok(distance_type)
     }
 }
 

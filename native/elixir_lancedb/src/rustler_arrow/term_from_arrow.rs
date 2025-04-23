@@ -34,21 +34,20 @@ impl Encoder for ReturnableTerm {
 }
 
 pub fn from_arrow(
-    results: Vec<RecordBatch>,
-    schema: &Schema,
+    results: Vec<RecordBatch>
 ) -> Result<Vec<HashMap<String, ReturnableTerm>>> {
-    let schema_fields = &schema.fields;
     let empty_recs: Vec<HashMap<String, ReturnableTerm>> = vec![];
     let records: Vec<HashMap<String, ReturnableTerm>> =
         results.into_iter().fold(empty_recs, |mut recs, batch| {
             let num_rows = batch.num_rows();
             let num_columns = batch.num_columns();
-
+            let batch_schema = batch.schema();
+            
             for row_idx in 0..num_rows {
                 let mut record: HashMap<String, ReturnableTerm> = HashMap::new();
 
                 for col_idx in 0..num_columns {
-                    let field = &schema_fields[col_idx];
+                    let field = &batch_schema.fields[col_idx];
                     let column = batch.column(col_idx);
                     let value = match field.data_type() {
                         DataType::Boolean => {

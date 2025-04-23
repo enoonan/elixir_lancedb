@@ -17,7 +17,7 @@ arrow-schema = "54.1"
 arrow-arith = "54.1"
 arrow-cast = "54.1"
 rustler = "0.36.1"
-lancedb = "0.18.2"
+lancedb = {version = "0.18.2", features = ["sentence-transformers", "openai"]}
 tokio = "1.44.2"
 once_cell = "1.21.3"
 futures-util = "0.3.31"

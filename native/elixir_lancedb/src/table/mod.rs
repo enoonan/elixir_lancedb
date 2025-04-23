@@ -13,14 +13,14 @@ use rustler::ResourceArc;
 
 pub struct TableResource(pub Arc<Mutex<Table>>);
 
-fn table_conn(table_resource: ResourceArc<TableResource>) -> Table {
-    let table;
+fn table_conn(table: ResourceArc<TableResource>) -> Table {
+    let result;
     {
-        table = table_resource
+        result = table
             .0
             .lock()
             .expect("Fatal: failed acquiring table resource lock")
             .clone();
     }
-    table
+    result
 }

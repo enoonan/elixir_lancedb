@@ -55,13 +55,23 @@ rustler::atoms! {
     arrow_dictionary_key_overflow_error,
     arrow_run_end_index_overflow_error,
 
-
-
     // table operations
     filter,
     sql,
     limit,
     columns,
+    query_vector,
+
+    // vector search
+    column,
+    nprobes,
+    lower_bound,
+    upper_bound,
+    ef,
+    refine_factor,
+    distance_type,
+    use_index,
+    postfilter,
 
     // Index Config
     config,
