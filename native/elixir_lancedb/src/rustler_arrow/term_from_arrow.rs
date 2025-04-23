@@ -3,7 +3,6 @@ use crate::error::Result;
 use arrow_array::Array;
 use arrow_array::RecordBatch;
 use arrow_schema::DataType;
-use arrow_schema::Schema;
 use rustler::{Encoder, Env, Term};
 use std::collections::HashMap;
 use std::sync::Arc;

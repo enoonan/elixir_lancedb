@@ -41,11 +41,10 @@ defmodule ElixirLanceDB.NativeTest do
         %{"baz" => [789, 101_112], "foo" => "duuuuuu"}
       ]
 
-      conn |> Native.create_table("test_from_data", items)
+      {:ok, table} = conn |> Native.create_table("test_from_data", items)
       assert {:ok, ["test_from_data"]} = conn |> Native.table_names()
 
-      {:ok, result} =
-        NodeJS.call({"src", "query"}, [Path.join(File.cwd!(), "data/testing"), "test_from_data"])
+      {:ok, result} = table |> Native.query()
 
       assert result == items
     end

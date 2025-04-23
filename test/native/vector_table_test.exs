@@ -32,7 +32,7 @@ defmodule ElixirLanceDB.Native.VectorTableTest do
 
     test "it can perform a vector query", %{table: vectors} do
       query = VQR.new() |> VQR.with_vector(create_vec())
-      {result, records} = vectors |> Native.vector_search(query) |> dbg()
+      {result, records} = vectors |> Native.vector_search(query)
       assert result == :ok
       assert records |> length() == 10
       assert records |> Enum.all?(&is_map/1)
