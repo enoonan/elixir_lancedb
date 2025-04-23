@@ -1,6 +1,6 @@
 # ElixirLanceDB
 
-This library aims to bring the fantastic [LanceDB](https://lancedb.github.io/lancedb/) embedded multimodal vector search database to the BEAM via. As LanceDB is written in Rust, this integration uses Rustler to map NIFs to the Lance Rust client.
+This library aims to bring the fantastic [LanceDB](https://lancedb.github.io/lancedb/) embedded multimodal vector search database to the BEAM. As LanceDB is written in Rust, this integration uses Rustler to map NIFs to the Lance Rust client.
 
 > 🚧 This project is very new, in active development, and is not published on Hex. 🚧
 
