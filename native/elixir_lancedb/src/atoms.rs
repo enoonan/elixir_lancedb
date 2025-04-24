@@ -63,6 +63,18 @@ rustler::atoms! {
     query_vector,
     full_text_search,
 
+    // optimize
+    action_type,
+    compaction,
+    fragments_removed,
+    fragments_added,
+    files_removed,
+    files_added,
+
+    prune,
+    bytes_removed,
+    old_versions,
+
     // vector search
     base,
     column,

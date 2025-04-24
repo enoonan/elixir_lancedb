@@ -2037,6 +2037,7 @@ dependencies = [
  "derive_more",
  "futures",
  "futures-util",
+ "lance",
  "lancedb",
  "once_cell",
  "rustler",

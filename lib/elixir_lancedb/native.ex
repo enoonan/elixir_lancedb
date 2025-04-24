@@ -1,4 +1,5 @@
 defmodule ElixirLanceDB.Native do
+  alias ElixirLancedb.Native.Table.OptimizeAction.ElixirLancedb.Native.Table.OptimizeAction.All
   alias ElixirLancedb.Native.Table.FullTextSearchQueryRequest
   alias ElixirLanceDB.Native.Table.Index.{Auto, BTree, Bitmap, LabelList, IvfPq, FTS}
 
@@ -36,6 +37,8 @@ defmodule ElixirLanceDB.Native do
   def open_table(_conn, _table_name), do: err()
 
   def count_rows(_conn, filter \\ "") when is_binary(filter), do: err()
+
+  def optimize(_table_ref, %All{}), do: err()
 
   def query(_table_ref, %QueryRequest{} \\ %QueryRequest{}), do: err()
 

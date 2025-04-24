@@ -3,6 +3,7 @@ mod count_rows;
 mod delete;
 mod index;
 mod merge_insert;
+mod optimize;
 mod query;
 mod update;
 

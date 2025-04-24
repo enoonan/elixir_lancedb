@@ -1,6 +1,7 @@
 defmodule ElixirNativeDB.Native.TableTest do
   use ExUnit.Case
 
+  alias ElixirLancedb.Native.Table.OptimizeAction.ElixirLancedb.Native.Table.OptimizeAction.All
   alias ElixirLanceDB.Native.Table.Index
   alias ElixirLanceDB.Native
   alias ElixirLanceDB.Native.Table.QueryRequest, as: QR
@@ -117,6 +118,22 @@ defmodule ElixirNativeDB.Native.TableTest do
                   %{columns: ["id"], index_type: :bitmap, name: "id_idx"},
                   %{columns: ["types"], index_type: :label_list, name: "types_idx"}
                 ]}
+    end
+
+    test "it can run optimize with All optimizations", %{table: fruits} do
+      {result, stats} = fruits |> Native.optimize(%All{})
+      assert result == :ok
+
+      assert stats ==
+               %{
+                 prune: %{bytes_removed: 0, old_versions: 0},
+                 compaction: %{
+                   fragments_removed: 0,
+                   fragments_added: 0,
+                   files_removed: 0,
+                   files_added: 0
+                 }
+               }
     end
   end
 

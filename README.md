@@ -23,6 +23,7 @@ This library aims to bring the fantastic [LanceDB](https://lancedb.github.io/lan
 - [X] Vector search
 - [X] Full text search
 - [X] Hybrid Vector + Full Text search
+- [X] Optimize table
 - [ ] Modify table schema 
 - [ ] Manage connections using a pool - maybe just for writes
 - [ ] Cleanup/Compaction strategies
