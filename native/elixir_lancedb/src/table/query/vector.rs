@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use crate::runtime::get_runtime;
 use crate::rustler_arrow::term_from_arrow::{from_arrow, ReturnableTerm};
 use crate::table::index::DistanceType;
@@ -12,6 +10,9 @@ use arrow_array::RecordBatch;
 use futures::TryStreamExt;
 use lancedb::query::{ExecutableQuery, Query, QueryBase, VectorQuery as LanceVectorQuery};
 use rustler::{Decoder, NifResult, ResourceArc};
+use std::collections::HashMap;
+
+use super::plain::QueryRequest;
 
 #[rustler::nif(schedule = "DirtyCpu")]
 pub fn vector_search(
@@ -20,20 +21,13 @@ pub fn vector_search(
 ) -> Result<Vec<HashMap<String, ReturnableTerm>>> {
     let table = table_conn(table);
     let result: Vec<HashMap<String, ReturnableTerm>> = get_runtime().block_on(async {
-        let mut query = table.query();
+        let base_query = request.clone().base.apply_to(table.query());
+        let mut vector_query = request.clone().apply_to(base_query)?;
 
-        if let Some(limit) = &request.limit {
-            query = query.limit(*limit);
-        }
-
-        if let Some(filter) = &request.filter {
-            query = query.only_if(filter);
-        }
-
-        let mut vector_query = request.clone().apply_to(query)?;
         if request.postfilter {
             vector_query = vector_query.postfilter();
         }
+
         let record_batch: Vec<RecordBatch> = vector_query.execute().await?.try_collect().await?;
         let results = from_arrow(record_batch)?;
         Ok::<Vec<HashMap<String, ReturnableTerm>>, Error>(results)
@@ -41,12 +35,34 @@ pub fn vector_search(
     Ok(result)
 }
 
+#[rustler::nif(schedule = "DirtyCpu")]
+pub fn hybrid_search(
+    table: ResourceArc<TableResource>,
+    request: VectorQueryRequest,
+) -> Result<Vec<HashMap<String, ReturnableTerm>>> {
+    let table = table_conn(table);
+    let results = get_runtime().block_on(async {
+        let base_query = request.clone().base.apply_to(table.query());
+        let mut vector_query = request.clone().apply_to(base_query)?;
+
+        if request.postfilter {
+            vector_query = vector_query.postfilter();
+        }
+
+        let record_batch: Vec<RecordBatch> =
+            vector_query.execute_hybrid().await?.try_collect().await?;
+
+        let results = from_arrow(record_batch)?;
+
+        Ok::<Vec<HashMap<String, ReturnableTerm>>, Error>(results)
+    })?;
+
+    Ok(results)
+}
+
 #[derive(Clone)]
 pub struct VectorQueryRequest {
-    // base querying
-    pub limit: Option<usize>,
-    pub filter: Option<String>,
-
+    pub base: QueryRequest,
     pub postfilter: bool,
 
     // Vector
@@ -63,28 +79,17 @@ pub struct VectorQueryRequest {
 
 impl Decoder<'_> for VectorQueryRequest {
     fn decode(term: rustler::Term<'_>) -> NifResult<Self> {
-        let limit: Option<usize> = term
-            .map_get(atoms::column())
-            .ok()
-            .and_then(|s| s.decode().ok());
-
-        let filter: Option<String> = term
-            .map_get(atoms::filter())
-            .ok()
-            .and_then(|s| s.decode().ok());
+        let base: QueryRequest = term.map_get(atoms::base())?.decode()?;
 
         let postfilter: bool = term.map_get(atoms::postfilter())?.decode()?;
 
-        // Extract column as an optional string
         let column: Option<String> = term
             .map_get(atoms::column())
             .ok()
             .and_then(|s| s.decode().ok());
 
-        // Extract query_vector as a required Vec<f32>
         let query_vector: Vec<f32> = term.map_get(atoms::query_vector())?.decode()?;
 
-        // Extract optional numeric parameters
         let nprobes: Option<usize> = term
             .map_get(atoms::nprobes())
             .ok()
@@ -107,20 +112,17 @@ impl Decoder<'_> for VectorQueryRequest {
             .ok()
             .and_then(|s| s.decode().ok());
 
-        // Extract optional distance_type enum
         let distance_type: Option<DistanceType> = term
             .map_get(atoms::distance_type())
             .ok()
             .and_then(|s| s.decode().ok());
 
-        // Extract boolean parameter
         let use_index: bool = term
             .map_get(atoms::use_index())
-            .map_or(true, |val| val.decode().unwrap_or(true)); // Default to true if missing or decode fails
+            .map_or(true, |val| val.decode().unwrap_or(true));
 
         Ok(VectorQueryRequest {
-            limit,
-            filter,
+            base,
             postfilter,
             column,
             query_vector,
@@ -135,7 +137,7 @@ impl Decoder<'_> for VectorQueryRequest {
     }
 }
 impl VectorQueryRequest {
-    fn apply_to(self, query: Query) -> Result<LanceVectorQuery> {
+    pub fn apply_to(self, query: Query) -> Result<LanceVectorQuery> {
         let mut vector_query = query.nearest_to(self.query_vector)?;
 
         if let Some(column) = self.column {

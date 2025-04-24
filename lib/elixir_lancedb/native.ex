@@ -1,4 +1,5 @@
 defmodule ElixirLanceDB.Native do
+  alias ElixirLancedb.Native.Table.FullTextSearchQueryRequest
   alias ElixirLanceDB.Native.Table.Index.{Auto, BTree, Bitmap, LabelList, IvfPq, FTS}
 
   alias ElixirLanceDB.Native.Table.{
@@ -56,7 +57,9 @@ defmodule ElixirLanceDB.Native do
   def create_index(_table_ref, fields, %IvfPq{}) when is_list(fields), do: err()
   def create_index(_table_ref, fields, %FTS{}) when is_list(fields), do: err()
 
+  def full_text_search(_table_ref, %QueryRequest{full_text_search: %FullTextSearchQueryRequest{}}), do: err()
   def vector_search(_table_ref, %VectorQueryRequest{}), do: err()
+  def hybrid_search(_table_ref, %VectorQueryRequest{}), do: err()
 
   def to_arrow(_records, _schema), do: err()
 

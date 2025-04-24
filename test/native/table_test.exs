@@ -27,8 +27,8 @@ defmodule ElixirNativeDB.Native.TableTest do
     end
 
     test "it can filter results using SQL", %{table: fruits} do
-      good_query = QR.new() |> QR.filter_sql("id = 123")
-      bad_query = QR.new() |> QR.filter_sql("klje85pjseg")
+      good_query = QR.new() |> QR.filter("id = 123")
+      bad_query = QR.new() |> QR.filter("klje85pjseg")
 
       {:ok, [apple]} = fruits |> Native.query(good_query)
       {:error, {:lance, err_msg}} = fruits |> Native.query(bad_query)
@@ -121,7 +121,7 @@ defmodule ElixirNativeDB.Native.TableTest do
   end
 
   defp apple_query(fruits) do
-    query_cfg = QR.new() |> QR.filter_sql("name = 'apple'")
+    query_cfg = QR.new() |> QR.filter("name = 'apple'")
     fruits |> Native.query(query_cfg)
   end
 

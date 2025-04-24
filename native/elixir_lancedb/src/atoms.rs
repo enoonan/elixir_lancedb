@@ -61,8 +61,10 @@ rustler::atoms! {
     limit,
     columns,
     query_vector,
+    full_text_search,
 
     // vector search
+    base,
     column,
     nprobes,
     lower_bound,
@@ -72,6 +74,10 @@ rustler::atoms! {
     distance_type,
     use_index,
     postfilter,
+
+    // full text search
+    query,
+    wand_factor,
 
     // Index Config
     config,

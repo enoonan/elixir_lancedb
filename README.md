@@ -21,8 +21,8 @@ This library aims to bring the fantastic [LanceDB](https://lancedb.github.io/lan
 - [X] Update items in table
 - [X] Delete items from table
 - [X] Vector search
-- [ ] Full text search
-- [ ] Hybrid Vector + Full Text search
+- [X] Full text search
+- [X] Hybrid Vector + Full Text search
 - [ ] Modify table schema 
 - [ ] Manage connections using a pool - maybe just for writes
 - [ ] Cleanup/Compaction strategies

@@ -7,9 +7,11 @@ use crate::{
 };
 use arrow_array::RecordBatch;
 use futures::TryStreamExt;
-use lancedb::query::{ExecutableQuery, QueryBase};
+use lancedb::query::{ExecutableQuery, Query, QueryBase};
 use rustler::{Decoder, NifResult, ResourceArc, Term};
 use std::{collections::HashMap, option::Option};
+
+use super::fts::FullTextSearchQuery;
 
 #[rustler::nif(schedule = "DirtyCpu")]
 fn query<'a>(
@@ -17,23 +19,10 @@ fn query<'a>(
     query_request: QueryRequest,
 ) -> Result<Vec<HashMap<String, ReturnableTerm>>> {
     let table = table_conn(table);
+
     let result: Result<Vec<HashMap<String, ReturnableTerm>>> = get_runtime().block_on(async {
-        let mut query = table.query();
-        query = match query_request.filter {
-            Some(filter) => match filter.sql {
-                Some(sql) => query.only_if(sql),
-                None => query,
-            },
-            None => query,
-        };
-
-        query = match query_request.limit {
-            Some(limit) => query.limit(limit),
-            None => query,
-        };
-
+        let query = query_request.apply_to(table.query());
         let results: Vec<RecordBatch> = query.execute().await?.try_collect().await?;
-
         from_arrow(results)
     });
 
@@ -47,6 +36,7 @@ fn query<'a>(
 pub struct QueryRequest {
     pub filter: Option<QueryFilter>,
     pub limit: Option<usize>,
+    pub full_text_search: Option<FullTextSearchQuery>,
 }
 
 #[derive(Clone, Debug)]
@@ -77,6 +67,39 @@ impl Decoder<'_> for QueryRequest {
             .ok()
             .and_then(|limit| limit.decode().ok().into());
 
-        Ok(QueryRequest { filter, limit })
+        let full_text_search: Option<FullTextSearchQuery> = term
+            .map_get(atoms::full_text_search())
+            .ok()
+            .and_then(|fts| fts.decode().ok().into());
+
+        Ok(QueryRequest {
+            filter,
+            limit,
+            full_text_search,
+        })
+    }
+}
+
+impl QueryRequest {
+    pub fn apply_to(self, mut query: Query) -> Query {
+        query = match self.filter {
+            Some(filter) => match filter.sql {
+                Some(sql) => query.only_if(sql),
+                None => query,
+            },
+            None => query,
+        };
+
+        query = match self.limit {
+            Some(limit) => query.limit(limit),
+            None => query,
+        };
+
+        query = match self.full_text_search {
+            Some(fts) => query.full_text_search(fts.into()),
+            None => query,
+        };
+
+        query
     }
 }
