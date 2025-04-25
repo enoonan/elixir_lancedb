@@ -1,6 +1,5 @@
 defmodule ElixirLanceDB.Native do
   alias ElixirLancedb.Native.Schema.NewColumnTransform.AllNulls
-  alias ElixirLancedb.Native.Schema.NewColumnTransform
   alias ElixirLanceDB.Native.Schema.ColumnAlteration
   alias ElixirLancedb.Native.Table.OptimizeAction.ElixirLancedb.Native.Table.OptimizeAction.All
   alias ElixirLancedb.Native.Table.FullTextSearchQueryRequest
