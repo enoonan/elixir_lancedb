@@ -5,7 +5,6 @@ use crate::{
     table::TableResource,
 };
 use arrow_array::{RecordBatch, RecordBatchIterator};
-
 use lancedb::{Connection, Table};
 use rustler::{resource_impl, Resource, ResourceArc, Term};
 
@@ -73,7 +72,7 @@ fn create_empty_table(
 
     let table = get_runtime().block_on(async {
         let table = conn
-            .create_empty_table(table_name, Arc::new(schema.into_arrow()))
+            .create_empty_table(table_name, Arc::new(schema.into()))
             .execute()
             .await?;
 
@@ -92,7 +91,7 @@ fn create_table_with_data(
     erl_data: Term,
     erl_schema: schema::Schema,
 ) -> Result<ResourceArc<TableResource>> {
-    let arrow_schema = erl_schema.into_arrow();
+    let arrow_schema: arrow_schema::Schema = erl_schema.into();
     let arc_schema = Arc::new(arrow_schema.clone());
     let columnar_data = term_to_arrow::to_arrow(erl_data, arrow_schema.clone())?;
     let batch = RecordBatchIterator::new(

@@ -1,6 +1,11 @@
 defmodule ElixirNativeDB.Native.TableTest do
   use ExUnit.Case
 
+  alias ElixirLancedb.Native.Schema.NewColumnTransform
+  alias ElixirLancedb.Native.Schema.NewColumnTransform.AllNulls
+  alias ElixirLanceDB.Native.Schema.ColumnAlteration
+  alias ElixirLanceDB.Native.Schema.Field
+  alias ElixirLanceDB.Native.Schema
   alias ElixirLancedb.Native.Table.OptimizeAction.ElixirLancedb.Native.Table.OptimizeAction.All
   alias ElixirLanceDB.Native.Table.Index
   alias ElixirLanceDB.Native
@@ -13,6 +18,54 @@ defmodule ElixirNativeDB.Native.TableTest do
     conn |> Native.create_table("fruits", fruits())
     {:ok, fruits} = conn |> Native.open_table("fruits")
     %{table: fruits}
+  end
+
+  describe "Table :: Operations ::" do
+    test "it can get schema", %{table: fruits} do
+      {result, schema} = fruits |> Native.schema()
+      assert result == :ok
+
+      assert schema ==
+               Schema.from([
+                 Field.float32("avg_weight_oz"),
+                 Field.int32("id"),
+                 Field.utf8("name"),
+                 Field.list("types", Field.utf8("item"))
+               ])
+    end
+
+    test "it can drop columns", %{table: fruits} do
+      fruits |> Native.drop_columns(["types", "avg_weight_oz"])
+      {result, schema} = fruits |> Native.schema()
+      assert result == :ok
+      assert schema == Schema.from([Field.int32("id"), Field.utf8("name")])
+    end
+
+    test "it can alter columns", %{table: fruits} do
+      fruits
+      |> Native.alter_columns([
+        ColumnAlteration.new("avg_weight_oz", rename: "avg_weight_lb"),
+        ColumnAlteration.new("id", data_type: :int64),
+        ColumnAlteration.new("types", nullable: true)
+      ])
+
+      {:ok, schema} = fruits |> Native.schema()
+      assert schema.fields |> Enum.any?(&(&1.name == "avg_weight_lb"))
+      assert schema.fields |> Enum.any?(&(&1.name == "id" and &1.field_type == :int64))
+      assert schema.fields |> Enum.any?(&(&1.name == "types" and &1.nullable))
+    end
+
+    test "it can add columns", %{table: fruits} do
+      new_col = NewColumnTransform.all_nulls([Field.int32("qty")])
+      fruits |> Native.add_columns(new_col)
+      {:ok, schema} = fruits |> Native.schema()
+
+      assert schema.fields
+             |> Enum.any?(&(&1.name == "qty" and &1.field_type == :int32))
+
+      {:ok, all_fruits} = fruits |> Native.query() |> dbg
+      assert all_fruits |> Enum.all?(&(&1["qty"] == 0))
+    end
   end
 
   describe "Table :: CRUD ::" do

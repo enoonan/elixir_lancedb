@@ -56,6 +56,7 @@ rustler::atoms! {
     arrow_run_end_index_overflow_error,
 
     // table operations
+    schema,
     filter,
     sql,
     limit,
@@ -131,13 +132,16 @@ rustler::atoms! {
     remove_stop_words,
     ascii_folding,
 
+    // adding columns
+    transform_type,
+
     // datatypes
-    s,
-    f,
-    u,
-    utf8,
-    timestamp_us,
-    timestamp_ns,
-    date,
-    unsupported_type,
+    // s,
+    // f,
+    // u,
+    // utf8,
+    // timestamp_us,
+    // timestamp_ns,
+    // date,
+    // unsupported_type,
 }

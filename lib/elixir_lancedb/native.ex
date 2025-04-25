@@ -1,4 +1,7 @@
 defmodule ElixirLanceDB.Native do
+  alias ElixirLancedb.Native.Schema.NewColumnTransform.AllNulls
+  alias ElixirLancedb.Native.Schema.NewColumnTransform
+  alias ElixirLanceDB.Native.Schema.ColumnAlteration
   alias ElixirLancedb.Native.Table.OptimizeAction.ElixirLancedb.Native.Table.OptimizeAction.All
   alias ElixirLancedb.Native.Table.FullTextSearchQueryRequest
   alias ElixirLanceDB.Native.Table.Index.{Auto, BTree, Bitmap, LabelList, IvfPq, FTS}
@@ -36,7 +39,14 @@ defmodule ElixirLanceDB.Native do
 
   def open_table(_conn, _table_name), do: err()
 
-  def count_rows(_conn, filter \\ "") when is_binary(filter), do: err()
+  def schema(_table_ref), do: err()
+  def add_columns(_table_ref, %AllNulls{transform_type: :all_nulls, schema: %Schema{}}), do: err()
+  def drop_columns(_table_ref, columns) when is_list(columns), do: err()
+
+  def alter_column(table_ref, %ColumnAlteration{} = col), do: alter_columns(table_ref, [col])
+  def alter_columns(_table_ref, [%ColumnAlteration{} | _rest]), do: err()
+
+  def count_rows(_table_ref, filter \\ "") when is_binary(filter), do: err()
 
   def optimize(_table_ref, %All{}), do: err()
 
@@ -60,7 +70,9 @@ defmodule ElixirLanceDB.Native do
   def create_index(_table_ref, fields, %IvfPq{}) when is_list(fields), do: err()
   def create_index(_table_ref, fields, %FTS{}) when is_list(fields), do: err()
 
-  def full_text_search(_table_ref, %QueryRequest{full_text_search: %FullTextSearchQueryRequest{}}), do: err()
+  def full_text_search(_table_ref, %QueryRequest{full_text_search: %FullTextSearchQueryRequest{}}),
+    do: err()
+
   def vector_search(_table_ref, %VectorQueryRequest{}), do: err()
   def hybrid_search(_table_ref, %VectorQueryRequest{}), do: err()
 

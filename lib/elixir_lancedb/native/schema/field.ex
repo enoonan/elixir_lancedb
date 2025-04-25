@@ -9,7 +9,7 @@ defmodule ElixirLanceDB.Native.Schema.Field do
         }
 
   def from_inferred_type({name, {:list, child_type}}) do
-       %__MODULE__{
+    %__MODULE__{
       name: name,
       field_type: {:list, from_inferred_type({"item", child_type})},
       nullable: true
@@ -17,7 +17,7 @@ defmodule ElixirLanceDB.Native.Schema.Field do
   end
 
   def from_inferred_type({name, {:fixed_size_list, child_type, dimension}}) do
-       %__MODULE__{
+    %__MODULE__{
       name: name,
       field_type: {:list, from_inferred_type({"item", child_type}), dimension},
       nullable: true
@@ -45,6 +45,14 @@ defmodule ElixirLanceDB.Native.Schema.Field do
     %__MODULE__{
       name: name,
       field_type: :float32,
+      nullable: nullable
+    }
+  end
+
+  def int32(name, nullable \\ true) do
+    %__MODULE__{
+      name: name,
+      field_type: :int32,
       nullable: nullable
     }
   end
