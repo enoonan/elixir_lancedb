@@ -7,10 +7,13 @@ use crate::{
 use arrow_array::{RecordBatch, RecordBatchIterator};
 
 use lancedb::{Connection, Table};
-use rustler::{ResourceArc, Term};
+use rustler::{resource_impl, Resource, ResourceArc, Term};
 
 use std::sync::{Arc, Mutex};
 pub struct DbConnResource(pub Arc<Mutex<Connection>>);
+
+#[resource_impl]
+impl Resource for DbConnResource{}
 
 #[rustler::nif(schedule = "DirtyCpu")]
 fn connect(uri: String) -> Result<ResourceArc<DbConnResource>> {

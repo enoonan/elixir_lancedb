@@ -33,6 +33,7 @@ This library aims to bring the fantastic [LanceDB](https://lancedb.github.io/lan
 
 Thanks to:
  * The folks on the LanceDB discord for guidance and encouraging emojis
+ * Rustler!
  * Elixir Explorer
  * arrow-elixir
  * snowflake_arrow

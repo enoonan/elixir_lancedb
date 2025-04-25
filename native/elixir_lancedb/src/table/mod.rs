@@ -10,9 +10,12 @@ mod update;
 use std::sync::{Arc, Mutex};
 
 use lancedb::Table;
-use rustler::ResourceArc;
+use rustler::{resource_impl, Resource, ResourceArc};
 
 pub struct TableResource(pub Arc<Mutex<Table>>);
+
+#[resource_impl]
+impl Resource for TableResource{}
 
 fn table_conn(table: ResourceArc<TableResource>) -> Table {
     let result;
