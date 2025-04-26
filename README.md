@@ -24,7 +24,7 @@ This library aims to bring the fantastic [LanceDB](https://lancedb.github.io/lan
 - [X] Full text search
 - [X] Hybrid Vector + Full Text search
 - [X] Optimize table
-- [ ] Modify table schema 
+- [X] Add, drop, and alter table columns
 - [ ] Manage connections using a pool - maybe just for writes
 - [ ] Cleanup/Compaction strategies
 - [ ] Provide embedding functions to Lance directly

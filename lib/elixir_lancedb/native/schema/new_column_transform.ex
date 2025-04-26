@@ -1,5 +1,5 @@
-defmodule ElixirLancedb.Native.Schema.NewColumnTransform do
-  alias ElixirLancedb.Native.Schema.NewColumnTransform.AllNulls
+defmodule ElixirLanceDB.Native.Schema.NewColumnTransform do
+  alias ElixirLanceDB.Native.Schema.NewColumnTransform.AllNulls
   alias ElixirLanceDB.Native.Schema
 
   defmodule AllNulls do

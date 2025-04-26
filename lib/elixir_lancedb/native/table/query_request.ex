@@ -1,6 +1,6 @@
 defmodule ElixirLanceDB.Native.Table.QueryRequest do
-  alias ElixirLancedb.Native.Table.FullTextSearchQueryRequest
-  alias ElixirLancedb.Native.Table.FullTextSearchQuery
+  alias ElixirLanceDB.Native.Table.FullTextSearchQueryRequest
+  alias ElixirLanceDB.Native.Table.FullTextSearchQuery
   alias ElixirLanceDB.Native.Table.QueryFilter
 
   defstruct [

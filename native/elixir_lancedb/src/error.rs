@@ -154,109 +154,183 @@ impl From<String> for Error {
 impl Encoder for Error {
     fn encode<'a>(&self, env: Env<'a>) -> Term<'a> {
         let error_tuple = match self {
-            Error::Other { message } => (atoms::lance_other(), message.to_string()),
-            Error::InvalidInput { message } => (atoms::invalid_input(), message.to_string()),
+            Error::Other { message } => {
+                (atoms::error(), (atoms::lance_other(), message.to_string()))
+            }
+            Error::InvalidInput { message } => (
+                atoms::error(),
+                (atoms::invalid_input(), message.to_string()),
+            ),
             // Lance
             Error::LanceInvalidTableName { name, reason } => (
-                atoms::lance_invalid_table_name(),
-                format!("{} is not a valid database name: {}", name, reason),
+                atoms::error(),
+                (
+                    atoms::lance_invalid_table_name(),
+                    format!("{} is not a valid database name: {}", name, reason),
+                ),
             ),
-            Error::LanceInvalidInput { message } => {
-                (atoms::lance_invalid_input(), message.to_string())
-            }
-            Error::LanceTableNotFound { name } => {
-                (atoms::lance_table_not_found(), name.to_string())
-            }
-            Error::LanceDatabaseNotFound { name } => {
-                (atoms::lance_database_not_found(), name.to_string())
-            }
-            Error::LanceDatabaseAlreadyExists { name } => {
-                (atoms::lance_database_already_exists(), name.to_string())
-            }
-            Error::LanceIndexNotFound { name } => {
-                (atoms::lance_index_not_found(), name.to_string())
-            }
+            Error::LanceInvalidInput { message } => (
+                atoms::error(),
+                (atoms::lance_invalid_input(), message.to_string()),
+            ),
+            Error::LanceTableNotFound { name } => (
+                atoms::error(),
+                (atoms::lance_table_not_found(), name.to_string()),
+            ),
+            Error::LanceDatabaseNotFound { name } => (
+                atoms::error(),
+                (atoms::lance_database_not_found(), name.to_string()),
+            ),
+            Error::LanceDatabaseAlreadyExists { name } => (
+                atoms::error(),
+                (atoms::lance_database_already_exists(), name.to_string()),
+            ),
+            Error::LanceIndexNotFound { name } => (
+                atoms::error(),
+                (atoms::lance_index_not_found(), name.to_string()),
+            ),
             Error::LanceEmbeddingFunctionNotFound { name, reason } => (
-                atoms::lance_embedding_function_not_found(),
-                format!("Embedding function {} not found: {}", name, reason),
+                atoms::error(),
+                (
+                    atoms::lance_embedding_function_not_found(),
+                    format!("Embedding function {} not found: {}", name, reason),
+                ),
             ),
-            Error::LanceTableAlreadyExists { name } => {
-                (atoms::lance_table_already_exists(), name.to_string())
-            }
+            Error::LanceTableAlreadyExists { name } => (
+                atoms::error(),
+                (atoms::lance_table_already_exists(), name.to_string()),
+            ),
             Error::LanceCreateDir { path, message } => (
-                atoms::lance_create_dir(),
-                format!("Could not create dir at path {}, reason: {}", path, message),
+                atoms::error(),
+                (
+                    atoms::lance_create_dir(),
+                    format!("Could not create dir at path {}, reason: {}", path, message),
+                ),
             ),
-            Error::LanceSchema { message } => (atoms::lance_schema(), message.to_string()),
-            Error::LanceRuntime { message } => (atoms::lance_runtime(), message.to_string()),
-            Error::LanceObjectStore { message } => {
-                (atoms::lance_object_store(), message.to_string())
+            Error::LanceSchema { message } => {
+                (atoms::error(), (atoms::lance_schema(), message.to_string()))
             }
-            Error::Lance { message } => (atoms::lance(), message.to_string()),
-            Error::LanceArrow { message } => (atoms::lance_arrow(), message.to_string()),
-            Error::LanceNotSupported { message } => {
-                (atoms::lance_not_supported(), message.to_string())
+            Error::LanceRuntime { message } => (
+                atoms::error(),
+                (atoms::lance_runtime(), message.to_string()),
+            ),
+            Error::LanceObjectStore { message } => (
+                atoms::error(),
+                (atoms::lance_object_store(), message.to_string()),
+            ),
+            Error::Lance { message } => (atoms::error(), (atoms::lance(), message.to_string())),
+            Error::LanceArrow { message } => {
+                (atoms::error(), (atoms::lance_arrow(), message.to_string()))
             }
-            Error::LanceOther { message } => (atoms::lance_other(), message.to_string()),
+            Error::LanceNotSupported { message } => (
+                atoms::error(),
+                (atoms::lance_not_supported(), message.to_string()),
+            ),
+            Error::LanceOther { message } => {
+                (atoms::error(), (atoms::lance_other(), message.to_string()))
+            }
 
             // Rustler
-            Error::RustlerBadArg => (atoms::rustler_bad_arg(), "bad argument".to_string()),
-            Error::RustlerAtom { message } => (atoms::rustler_atom(), message.to_string()),
-            Error::RustlerRaiseAtom { message } => {
-                (atoms::rustler_raise_atom(), message.to_string())
+            Error::RustlerBadArg => (
+                atoms::error(),
+                (atoms::rustler_bad_arg(), "bad argument".to_string()),
+            ),
+            Error::RustlerAtom { message } => {
+                (atoms::error(), (atoms::rustler_atom(), message.to_string()))
             }
-            Error::RustlerRaiseTerm { message } => {
-                (atoms::rustler_raise_term(), message.to_string())
+            Error::RustlerRaiseAtom { message } => (
+                atoms::error(),
+                (atoms::rustler_raise_atom(), message.to_string()),
+            ),
+            Error::RustlerRaiseTerm { message } => (
+                atoms::error(),
+                (atoms::rustler_raise_term(), message.to_string()),
+            ),
+            Error::RustlerTerm { message } => {
+                (atoms::error(), (atoms::rustler_term(), message.to_string()))
             }
-            Error::RustlerTerm { message } => (atoms::rustler_term(), message.to_string()),
 
             // Arrow
-            Error::ArrowNotYetImplemented { message } => {
-                (atoms::arrow_not_yet_implemented(), message.to_string())
-            }
-            Error::ArrowExternalError { message } => {
-                (atoms::arrow_external_error(), message.to_string())
-            }
-            Error::ArrowCastError { message } => (atoms::arrow_cast_error(), message.to_string()),
-            Error::ArrowMemoryError { message } => {
-                (atoms::arrow_memory_error(), message.to_string())
-            }
-            Error::ArrowParseError { message } => (atoms::arrow_parse_error(), message.to_string()),
-            Error::ArrowSchemaError { messsage } => {
-                (atoms::arrow_schema_error(), messsage.to_string())
-            }
-            Error::ArrowComputeError { message } => {
-                (atoms::arrow_compute_error(), message.to_string())
-            }
-            Error::ArrowDivideByZero => (
-                atoms::arrow_divide_by_zero(),
-                "no further information provided".to_string(),
+            Error::ArrowNotYetImplemented { message } => (
+                atoms::error(),
+                (atoms::arrow_not_yet_implemented(), message.to_string()),
             ),
-            Error::ArrowArithmeticOverflow { message } => {
-                (atoms::arrow_arithmetic_overflow(), message.to_string())
-            }
-            Error::ArrowCsvError { message } => (atoms::arrow_csv_error(), message.to_string()),
-            Error::ArrowJsonError { message } => (atoms::arrow_json_error(), message.to_string()),
-            Error::ArrowIoError { message, error } => {
-                (atoms::arrow_io_error(), format!("{}. {}.", message, error))
-            }
-            Error::ArrowIpcError { message } => (atoms::arrow_ipc_error(), message.to_string()),
-            Error::ArrowInvalidArgumentError { message } => {
-                (atoms::arrow_invalid_argument_error(), message.to_string())
-            }
-            Error::ArrowParquetError { message } => {
-                (atoms::arrow_parquet_error(), message.to_string())
-            }
-            Error::ArrowCDataInterface { message } => {
-                (atoms::arrow_cdata_interface(), message.to_string())
-            }
+            Error::ArrowExternalError { message } => (
+                atoms::error(),
+                (atoms::arrow_external_error(), message.to_string()),
+            ),
+            Error::ArrowCastError { message } => (
+                atoms::error(),
+                (atoms::arrow_cast_error(), message.to_string()),
+            ),
+            Error::ArrowMemoryError { message } => (
+                atoms::error(),
+                (atoms::arrow_memory_error(), message.to_string()),
+            ),
+            Error::ArrowParseError { message } => (
+                atoms::error(),
+                (atoms::arrow_parse_error(), message.to_string()),
+            ),
+            Error::ArrowSchemaError { messsage } => (
+                atoms::error(),
+                (atoms::arrow_schema_error(), messsage.to_string()),
+            ),
+            Error::ArrowComputeError { message } => (
+                atoms::error(),
+                (atoms::arrow_compute_error(), message.to_string()),
+            ),
+            Error::ArrowDivideByZero => (
+                atoms::error(),
+                (
+                    atoms::arrow_divide_by_zero(),
+                    "no further information provided".to_string(),
+                ),
+            ),
+            Error::ArrowArithmeticOverflow { message } => (
+                atoms::error(),
+                (atoms::arrow_arithmetic_overflow(), message.to_string()),
+            ),
+            Error::ArrowCsvError { message } => (
+                atoms::error(),
+                (atoms::arrow_csv_error(), message.to_string()),
+            ),
+            Error::ArrowJsonError { message } => (
+                atoms::error(),
+                (atoms::arrow_json_error(), message.to_string()),
+            ),
+            Error::ArrowIoError { message, error } => (
+                atoms::error(),
+                (atoms::arrow_io_error(), format!("{}. {}.", message, error)),
+            ),
+            Error::ArrowIpcError { message } => (
+                atoms::error(),
+                (atoms::arrow_ipc_error(), message.to_string()),
+            ),
+            Error::ArrowInvalidArgumentError { message } => (
+                atoms::error(),
+                (atoms::arrow_invalid_argument_error(), message.to_string()),
+            ),
+            Error::ArrowParquetError { message } => (
+                atoms::error(),
+                (atoms::arrow_parquet_error(), message.to_string()),
+            ),
+            Error::ArrowCDataInterface { message } => (
+                atoms::error(),
+                (atoms::arrow_cdata_interface(), message.to_string()),
+            ),
             Error::ArrowDictionaryKeyOverflowError => (
-                atoms::arrow_dictionary_key_overflow_error(),
-                "no further information provided".to_string(),
+                atoms::error(),
+                (
+                    atoms::arrow_dictionary_key_overflow_error(),
+                    "no further information provided".to_string(),
+                ),
             ),
             Error::ArrowRunEndIndexOverflowError => (
-                atoms::arrow_run_end_index_overflow_error(),
-                "no further information provided".to_string(),
+                atoms::error(),
+                (
+                    atoms::arrow_run_end_index_overflow_error(),
+                    "no further information provided".to_string(),
+                ),
             ),
         };
         error_tuple.encode(env)

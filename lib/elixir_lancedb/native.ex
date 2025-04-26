@@ -1,8 +1,8 @@
 defmodule ElixirLanceDB.Native do
-  alias ElixirLancedb.Native.Schema.NewColumnTransform.AllNulls
+  alias ElixirLanceDB.Native.Schema.NewColumnTransform.AllNulls
   alias ElixirLanceDB.Native.Schema.ColumnAlteration
-  alias ElixirLancedb.Native.Table.OptimizeAction.ElixirLancedb.Native.Table.OptimizeAction.All
-  alias ElixirLancedb.Native.Table.FullTextSearchQueryRequest
+  alias ElixirLanceDB.Native.Table.OptimizeAction.All
+  alias ElixirLanceDB.Native.Table.FullTextSearchQueryRequest
   alias ElixirLanceDB.Native.Table.Index.{Auto, BTree, Bitmap, LabelList, IvfPq, FTS}
 
   alias ElixirLanceDB.Native.Table.{
@@ -16,6 +16,8 @@ defmodule ElixirLanceDB.Native do
   use Rustler, otp_app: :elixir_lancedb, crate: "elixir_lancedb"
 
   def connect(uri) when is_binary(uri), do: err()
+
+  def disconnect_db(conn) when is_reference(conn), do: err()
 
   def table_names(conn) when is_reference(conn), do: err()
 

@@ -1,12 +1,11 @@
 defmodule ElixirNativeDB.Native.TableTest do
   use ExUnit.Case
 
-  alias ElixirLancedb.Native.Schema.NewColumnTransform
-  alias ElixirLancedb.Native.Schema.NewColumnTransform.AllNulls
+  alias ElixirLanceDB.Native.Schema.NewColumnTransform
   alias ElixirLanceDB.Native.Schema.ColumnAlteration
   alias ElixirLanceDB.Native.Schema.Field
   alias ElixirLanceDB.Native.Schema
-  alias ElixirLancedb.Native.Table.OptimizeAction.ElixirLancedb.Native.Table.OptimizeAction.All
+  alias ElixirLanceDB.Native.Table.OptimizeAction.All
   alias ElixirLanceDB.Native.Table.Index
   alias ElixirLanceDB.Native
   alias ElixirLanceDB.Native.Table.QueryRequest, as: QR
@@ -63,7 +62,7 @@ defmodule ElixirNativeDB.Native.TableTest do
       assert schema.fields
              |> Enum.any?(&(&1.name == "qty" and &1.field_type == :int32))
 
-      {:ok, all_fruits} = fruits |> Native.query() |> dbg
+      {:ok, all_fruits} = fruits |> Native.query()
       assert all_fruits |> Enum.all?(&(&1["qty"] == 0))
     end
   end

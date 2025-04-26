@@ -1,4 +1,4 @@
-defmodule ElixirLancedb.Native.Table.FullTextSearchQueryRequest do
+defmodule ElixirLanceDB.Native.Table.FullTextSearchQueryRequest do
   defstruct [:query, limit: nil, columns: [], wand_factor: nil]
 
   @type t() :: %__MODULE__{
