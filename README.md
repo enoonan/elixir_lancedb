@@ -2,6 +2,8 @@
 
 This library aims to bring the fantastic [LanceDB](https://lancedb.github.io/lancedb/) embedded multimodal vector search database to the BEAM. As LanceDB is written in Rust, this integration uses Rustler to map NIFs to the Lance Rust client.
 
+The current focus of this project is to implement an Ecto Adapter so that it can plug into the broader Ecto ecosystem.
+
 > 🚧 This project is very new, in active development, and is not published on Hex. 🚧
 
 > 🚧 Feel free to fork, borrow from, or use at your own risk, but do expect the API to change. 🚧
@@ -25,8 +27,8 @@ This library aims to bring the fantastic [LanceDB](https://lancedb.github.io/lan
 - [X] Hybrid Vector + Full Text search
 - [X] Optimize table
 - [X] Add, drop, and alter table columns
-- [ ] Implement [DBConnection](https://hexdocs.pm/db_connection/DBConnection.html) behavior
-- [ ] Infinite readers, infinite appenders, but max 10 concurrent "mutators"
+- [ ] Implement an Ecto Adapter
+- [ ] Implement an Ash DataLayer
 - [ ] Implement table Cleanup/Compaction strategies
 - [ ] Implement Lance embedding registry for OpenAI and Sentence Transformers (no need for users to generate own embeddings)
 - [ ] Complete various partial implementations - indices, new column configs, data types, table optimization, etc
