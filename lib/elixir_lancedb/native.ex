@@ -17,7 +17,7 @@ defmodule ElixirLanceDB.Native do
 
   def connect(uri) when is_binary(uri), do: err()
 
-  def disconnect_db(conn) when is_reference(conn), do: err()
+  def close_db_connection(conn) when is_reference(conn), do: err()
 
   def table_names(conn) when is_reference(conn), do: err()
 
@@ -39,6 +39,8 @@ defmodule ElixirLanceDB.Native do
   def create_table_with_data(_conn, _table_name, _initial_data, %Schema{}), do: err()
 
   def open_table(_conn, _table_name), do: err()
+
+  def close_table(_table_ref), do: err()
 
   def schema(_table_ref), do: err()
   def add_columns(_table_ref, %AllNulls{transform_type: :all_nulls, schema: %Schema{}}), do: err()

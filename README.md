@@ -25,9 +25,13 @@ This library aims to bring the fantastic [LanceDB](https://lancedb.github.io/lan
 - [X] Hybrid Vector + Full Text search
 - [X] Optimize table
 - [X] Add, drop, and alter table columns
-- [ ] Manage connections using a pool - maybe just for writes
-- [ ] Cleanup/Compaction strategies
-- [ ] Provide embedding functions to Lance directly
+- [ ] Implement [DBConnection](https://hexdocs.pm/db_connection/DBConnection.html) behavior
+- [ ] Infinite readers, infinite appenders, but max 10 concurrent "mutators"
+- [ ] Implement table Cleanup/Compaction strategies
+- [ ] Implement Lance embedding registry for OpenAI and Sentence Transformers (no need for users to generate own embeddings)
+- [ ] Complete various partial implementations - indices, new column configs, data types, table optimization, etc
+- [ ] More tests, benchmarks, and documentation
+- [ ] Distribute with `rustler_precompiled` 
 
 ---
 
