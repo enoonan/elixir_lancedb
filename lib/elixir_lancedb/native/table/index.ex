@@ -61,7 +61,7 @@ defmodule ElixirLanceDB.Native.Table.Index do
                 ascii_folding: false
 
       @type t() :: %__MODULE__{
-              base_tokenizer: :simple | :whitespace | :raw,
+              base_tokenizer: :simple | :whitespace | :raw | String.t(),
               language:
                 :arabic
                 | :danish
@@ -80,7 +80,8 @@ defmodule ElixirLanceDB.Native.Table.Index do
                 | :spanish
                 | :swedish
                 | :tamil
-                | :turkish,
+                | :turkish
+                | String.t(),
               max_token_length: integer() | nil,
               lower_case: boolean(),
               stem: boolean(),
@@ -94,8 +95,8 @@ defmodule ElixirLanceDB.Native.Table.Index do
     %FTS{
       with_position: get(config, :with_position, true),
       tokenizer_configs: %TokenizerConfig{
-        base_tokenizer: get(config, :base_tokenizer, :simple),
-        language: get(config, :language, :english),
+        base_tokenizer: get(config, :base_tokenizer, :simple) |> Atom.to_string,
+        language: get(config, :language, :english) |> Atom.to_string,
         max_token_length: get(config, :max_token_length, 40),
         lower_case: get(config, :lower_case, true),
         stem: get(config, :stem, false),
