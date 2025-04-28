@@ -19,7 +19,7 @@ pub fn vector_search(
     table: ResourceArc<TableResource>,
     request: VectorQueryRequest,
 ) -> Result<Vec<HashMap<String, ReturnableTerm>>> {
-    let table = table_conn(table);
+    let table = table_conn(table)?;
     let result: Vec<HashMap<String, ReturnableTerm>> = get_runtime().block_on(async {
         let base_query = request.clone().base.apply_to(table.query());
         let mut vector_query = request.clone().apply_to(base_query)?;
@@ -40,7 +40,7 @@ pub fn hybrid_search(
     table: ResourceArc<TableResource>,
     request: VectorQueryRequest,
 ) -> Result<Vec<HashMap<String, ReturnableTerm>>> {
-    let table = table_conn(table);
+    let table = table_conn(table)?;
     let results = get_runtime().block_on(async {
         let base_query = request.clone().base.apply_to(table.query());
         let mut vector_query = request.clone().apply_to(base_query)?;

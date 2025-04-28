@@ -25,7 +25,7 @@ pub fn merge_insert(
     input: Term,
     config: MergeInsertConfig,
 ) -> Result<()> {
-    let table = table_conn(table);
+    let table = table_conn(table)?;
 
     get_runtime().block_on(async {
         let schema = table.schema().await?;

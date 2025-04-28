@@ -15,6 +15,14 @@ defmodule ElixirLanceDB.NativeTest do
       assert conn |> is_reference()
     end
 
+    test "it can close a db connection", %{conn: conn} do
+      conn |> Native.close_db_connection()
+      {result, {err_type, msg}} = conn |> Native.table_names()
+      assert result == :error
+      assert err_type == :db_connection_closed
+      assert msg =~ "the database connection is not open"
+    end
+
     test "it shows empty table names list", %{conn: conn} do
       {:ok, table_names} = conn |> Native.table_names()
       assert table_names |> is_list()

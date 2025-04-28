@@ -1,6 +1,6 @@
 use crate::{
     atoms,
-    error::{Error, Result},
+    error::Result,
     runtime::get_runtime,
     rustler_arrow::term_from_arrow::{from_arrow, ReturnableTerm},
     table::{table_conn, TableResource},
@@ -18,18 +18,15 @@ fn query<'a>(
     table: ResourceArc<TableResource>,
     query_request: QueryRequest,
 ) -> Result<Vec<HashMap<String, ReturnableTerm>>> {
-    let table = table_conn(table);
+    let table = table_conn(table)?;
 
-    let result: Result<Vec<HashMap<String, ReturnableTerm>>> = get_runtime().block_on(async {
+    let result: Vec<HashMap<String, ReturnableTerm>> = get_runtime().block_on(async {
         let query = query_request.apply_to(table.query());
         let results: Vec<RecordBatch> = query.execute().await?.try_collect().await?;
         from_arrow(results)
-    });
+    })?;
 
-    match result {
-        Ok(recs) => Ok(recs),
-        Err(err) => Err(Error::from(err)),
-    }
+    Ok(result)
 }
 
 #[derive(Clone, Debug)]

@@ -9,10 +9,10 @@ use lancedb::{Connection, Table};
 use rustler::{resource_impl, Resource, ResourceArc, Term};
 
 use std::sync::{Arc, Mutex};
-pub struct DbConnResource(pub Arc<Mutex<Connection>>);
+pub struct DbConnResource(pub Arc<Mutex<Option<Connection>>>);
 
 #[resource_impl]
-impl Resource for DbConnResource{}
+impl Resource for DbConnResource {}
 
 #[rustler::nif(schedule = "DirtyCpu")]
 fn connect(uri: String) -> Result<ResourceArc<DbConnResource>> {
@@ -21,14 +21,14 @@ fn connect(uri: String) -> Result<ResourceArc<DbConnResource>> {
         Ok::<Connection, Error>(conn)
     })?;
 
-    let conn_resource = DbConnResource(Arc::new(Mutex::new(result)));
+    let conn_resource = DbConnResource(Arc::new(Mutex::new(Some(result))));
 
     Ok(ResourceArc::new(conn_resource))
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
 fn table_names(conn: ResourceArc<DbConnResource>) -> Result<Vec<String>> {
-    let conn = db_conn(conn);
+    let conn = db_conn(conn)?;
 
     let result = get_runtime().block_on(async {
         let names = conn.table_names().execute().await?;
@@ -40,7 +40,7 @@ fn table_names(conn: ResourceArc<DbConnResource>) -> Result<Vec<String>> {
 
 #[rustler::nif(schedule = "DirtyCpu")]
 fn drop_all_tables(conn: ResourceArc<DbConnResource>) -> Result<()> {
-    let conn = db_conn(conn);
+    let conn = db_conn(conn)?;
 
     get_runtime().block_on(async {
         conn.drop_all_tables().await?;
@@ -52,7 +52,7 @@ fn drop_all_tables(conn: ResourceArc<DbConnResource>) -> Result<()> {
 
 #[rustler::nif(schedule = "DirtyCpu")]
 fn drop_table(conn: ResourceArc<DbConnResource>, table_name: String) -> Result<()> {
-    let conn = db_conn(conn);
+    let conn = db_conn(conn)?;
 
     get_runtime().block_on(async {
         conn.drop_table(&table_name).await?;
@@ -68,7 +68,7 @@ fn create_empty_table(
     table_name: String,
     schema: schema::Schema,
 ) -> Result<ResourceArc<TableResource>> {
-    let conn = db_conn(conn);
+    let conn = db_conn(conn)?;
 
     let table = get_runtime().block_on(async {
         let table = conn
@@ -79,7 +79,7 @@ fn create_empty_table(
         Ok::<Table, Error>(table)
     })?;
 
-    let table_arc = TableResource(Arc::new(Mutex::new(table)));
+    let table_arc = TableResource(Arc::new(Mutex::new(Some(table))));
 
     Ok(ResourceArc::new(table_arc))
 }
@@ -99,7 +99,7 @@ fn create_table_with_data(
         arc_schema,
     );
 
-    let conn = db_conn(conn);
+    let conn = db_conn(conn)?;
     let table = get_runtime().block_on(async {
         let table = conn
             .create_table(table_name, Box::new(batch))
@@ -108,7 +108,7 @@ fn create_table_with_data(
         Ok::<Table, Error>(table)
     })?;
 
-    let table_arc = TableResource(Arc::new(Mutex::new(table)));
+    let table_arc = TableResource(Arc::new(Mutex::new(Some(table))));
 
     Ok(ResourceArc::new(table_arc))
 }
@@ -118,18 +118,27 @@ fn open_table(
     conn: ResourceArc<DbConnResource>,
     table_name: String,
 ) -> Result<ResourceArc<TableResource>> {
-    let conn = db_conn(conn);
+    let conn = db_conn(conn)?;
     let table = get_runtime().block_on(async {
         let table = conn.open_table(table_name).execute().await?;
         Ok::<Table, Error>(table)
     })?;
 
-    let table_arc = TableResource(Arc::new(Mutex::new(table)));
+    let table_arc = TableResource(Arc::new(Mutex::new(Some(table))));
 
     Ok(ResourceArc::new(table_arc))
 }
 
-pub fn db_conn(conn_resource: ResourceArc<DbConnResource>) -> Connection {
+#[rustler::nif(schedule = "DirtyCpu")]
+fn close_db_connection(conn: ResourceArc<DbConnResource>) -> Result<()> {
+    let mut lock = conn.0.lock().map_err(|_| Error::DbMutexLockPoisoned {
+        message: "failed closing db connection".to_string(),
+    })?;
+    *lock = None;
+    Ok(())
+}
+
+pub fn db_conn(conn_resource: ResourceArc<DbConnResource>) -> Result<Connection> {
     let connection;
     {
         connection = conn_resource
@@ -138,5 +147,7 @@ pub fn db_conn(conn_resource: ResourceArc<DbConnResource>) -> Connection {
             .expect("Fatal: failed acquiring connection lock")
             .clone();
     }
-    connection
+    connection.ok_or_else(|| Error::DbConnectionClosed {
+        message: "the database connection is not open".to_string(),
+    })
 }

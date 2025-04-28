@@ -12,7 +12,7 @@ pub fn alter_columns(
     table: ResourceArc<TableResource>,
     alterations: Vec<ColumnAlteration>,
 ) -> Result<()> {
-    let table = table_conn(table);
+    let table = table_conn(table)?;
     let result = get_runtime().block_on(async {
         let lance_alterations: Vec<LanceColumnAlteration> =
             alterations.into_iter().map(|a| a.into()).collect();

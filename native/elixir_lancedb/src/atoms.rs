@@ -5,6 +5,10 @@ rustler::atoms! {
     name,
     reason,
     invalid_input,
+    db_connection_closed,
+    db_mutex_lock_poisoned,
+    table_connection_closed,
+    table_mutex_lock_poisoned,
 
     // Lance Errors
     lance_invalid_table_name,

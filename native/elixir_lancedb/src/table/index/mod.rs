@@ -159,7 +159,7 @@ impl Encoder for ReturnableIndexConfig {
 
 #[rustler::nif(schedule = "DirtyCpu")]
 pub fn list_indices(table: ResourceArc<TableResource>) -> Result<Vec<ReturnableIndexConfig>> {
-    let table = table_conn(table);
+    let table = table_conn(table)?;
     let indices = get_runtime().block_on(async {
         let idcs = table
             .list_indices()
@@ -178,7 +178,7 @@ pub fn create_index(
     fields: Vec<String>,
     index_cfg: IndexConfig,
 ) -> Result<()> {
-    let table = table_conn(table);
+    let table = table_conn(table)?;
     get_runtime().block_on(async {
         let idx_builder = table.create_index(&fields, index_cfg.into());
         idx_builder.execute().await?;

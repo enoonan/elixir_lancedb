@@ -17,7 +17,7 @@ pub fn optimize(
     table: ResourceArc<TableResource>,
     action: OptimizeAction,
 ) -> Result<OptimizeStats> {
-    let table = table_conn(table);
+    let table = table_conn(table)?;
     let result: OptimizeStats = get_runtime()
         .block_on(async {
             let result = table.optimize(action.into()).await?;

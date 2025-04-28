@@ -22,7 +22,7 @@ pub struct ColumnOperation {
 
 #[rustler::nif(schedule = "DirtyCpu")]
 pub fn update(table: ResourceArc<TableResource>, update_config: UpdateConfig) -> Result<u64> {
-    let table = table_conn(table);
+    let table = table_conn(table)?;
     let result = get_runtime().block_on(async {
         let mut update = table.update();
 

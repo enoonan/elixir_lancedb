@@ -30,7 +30,7 @@ pub fn full_text_search(
         Some(query) => query,
     };
 
-    let table = table_conn(table);
+    let table = table_conn(table)?;
     let result: Vec<HashMap<String, ReturnableTerm>> = get_runtime().block_on(async {
         let query = table.query().full_text_search(fts_query.into());
         let record_batch: Vec<RecordBatch> = query.execute().await?.try_collect().await?;

@@ -33,6 +33,14 @@ defmodule ElixirNativeDB.Native.TableTest do
                ])
     end
 
+    test "it can close table connection", %{table: fruits} do
+      fruits |> Native.close_table()
+      {result, {err_type, msg}} = fruits |> Native.schema()
+      assert result == :error
+      assert err_type == :table_connection_closed
+      assert msg =~ "the table connection is not open"
+    end
+
     test "it can drop columns", %{table: fruits} do
       fruits |> Native.drop_columns(["types", "avg_weight_oz"])
       {result, schema} = fruits |> Native.schema()
