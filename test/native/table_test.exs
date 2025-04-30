@@ -1,9 +1,7 @@
 defmodule ElixirNativeDB.Native.TableTest do
   use ExUnit.Case
 
-  alias ElixirLanceDB.Native.Schema.NewColumnTransform
-  alias ElixirLanceDB.Native.Schema.ColumnAlteration
-  alias ElixirLanceDB.Native.Schema.Field
+  alias ElixirLanceDB.Native.Schema.{NewColumnTransform, ColumnAlteration, Field}
   alias ElixirLanceDB.Native.Schema
   alias ElixirLanceDB.Native.Table.OptimizeAction.All
   alias ElixirLanceDB.Native.Table.Index
@@ -16,7 +14,7 @@ defmodule ElixirNativeDB.Native.TableTest do
     conn |> Native.drop_all_tables()
     conn |> Native.create_table("fruits", fruits())
     {:ok, fruits} = conn |> Native.open_table("fruits")
-    %{table: fruits}
+    %{table: fruits, conn: conn}
   end
 
   describe "Table :: Operations ::" do
@@ -29,7 +27,8 @@ defmodule ElixirNativeDB.Native.TableTest do
                  Field.float32("avg_weight_oz"),
                  Field.int32("id"),
                  Field.utf8("name"),
-                 Field.list("types", Field.utf8("item"))
+                 Field.list("types", Field.utf8("item")),
+                 Field.fixed_size_list("name", Field.float32("item"), 23)
                ])
     end
 
@@ -149,6 +148,18 @@ defmodule ElixirNativeDB.Native.TableTest do
       {:ok, results} = fruits |> Native.query()
       assert results |> length() == 2
       refute results |> Enum.any?(&(&1["name"] in ["apple", "banana"]))
+    end
+
+    test "it can work with URLs", %{conn: conn} do
+      {:ok, urls} = conn |> Native.create_empty_table("urls", Schema.from([Field.int32("id"), Field.utf8("domain")]))
+      {result, _} = urls |> Native.add([%{"id" => 1, "domain" => "https://candy-confetti.party"}])
+      assert result == :ok
+      query = UpCfg.new() |> UpCfg.filter("id = 1") |> UpCfg.column("domain", "\"https://punch-and-pie.org\"")
+      {result2, _} = urls |> Native.update(query)
+      assert result2 == :ok
+      query = QR.new() |> QR.filter("id = 1")
+      {:ok, [updated]} = urls |> Native.query(query) |> dbg
+      assert updated["domain"] == "https://punch-and-pie.org"
     end
   end
 

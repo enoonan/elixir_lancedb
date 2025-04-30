@@ -65,9 +65,9 @@ defmodule ElixirLanceDB.Native.Schema.Field do
     }
   end
 
-  def fixed_size_list(name, %__MODULE__{} = child, dimension), do: vector(name, child, dimension)
+  def vector(name, %__MODULE__{} = child, dimension), do: fixed_size_list(name, child, dimension)
 
-  def vector(name, %__MODULE__{} = child, dimension) when is_integer(dimension) do
+  def fixed_size_list(name, %__MODULE__{} = child, dimension) when is_integer(dimension) do
     %__MODULE__{
       name: name,
       field_type: {:fixed_size_list, child, dimension},
