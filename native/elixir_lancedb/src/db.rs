@@ -8,7 +8,10 @@ use arrow_array::{RecordBatch, RecordBatchIterator};
 use lancedb::{Connection, Table};
 use rustler::{resource_impl, Resource, ResourceArc, Term};
 
-use std::sync::{Arc, Mutex};
+use std::{
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 pub struct DbConnResource(pub Arc<Mutex<Option<Connection>>>);
 
 #[resource_impl]
@@ -17,7 +20,10 @@ impl Resource for DbConnResource {}
 #[rustler::nif(schedule = "DirtyCpu")]
 fn connect(uri: String) -> Result<ResourceArc<DbConnResource>> {
     let result = get_runtime().block_on(async {
-        let conn = lancedb::connect(&uri).execute().await?;
+        let conn = lancedb::connect(&uri)
+            .read_consistency_interval(Duration::from_micros(0))
+            .execute()
+            .await?;
         Ok::<Connection, Error>(conn)
     })?;
 

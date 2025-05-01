@@ -27,8 +27,7 @@ defmodule ElixirNativeDB.Native.TableTest do
                  Field.float32("avg_weight_oz"),
                  Field.int32("id"),
                  Field.utf8("name"),
-                 Field.list("types", Field.utf8("item")),
-                 Field.fixed_size_list("name", Field.float32("item"), 23)
+                 Field.list("types", Field.utf8("item"))
                ])
     end
 
@@ -155,10 +154,11 @@ defmodule ElixirNativeDB.Native.TableTest do
       {result, _} = urls |> Native.add([%{"id" => 1, "domain" => "https://candy-confetti.party"}])
       assert result == :ok
       query = UpCfg.new() |> UpCfg.filter("id = 1") |> UpCfg.column("domain", "\"https://punch-and-pie.org\"")
-      {result2, _} = urls |> Native.update(query)
+      {result2, num_updated} = urls |> Native.update(query)
       assert result2 == :ok
+      assert num_updated == 1
       query = QR.new() |> QR.filter("id = 1")
-      {:ok, [updated]} = urls |> Native.query(query) |> dbg
+      {:ok, [updated]} = urls |> Native.query(query)
       assert updated["domain"] == "https://punch-and-pie.org"
     end
   end
