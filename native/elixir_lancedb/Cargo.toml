@@ -17,10 +17,10 @@ arrow-schema = "54.1"
 arrow-arith = "54.1"
 arrow-cast = "54.1"
 rustler = "0.36.1"
-lancedb = {version = "0.18.2", features = ["sentence-transformers", "openai"]}
+lancedb = {git = "https://github.com/lancedb/lancedb", tag = "v0.19.1-beta.1", features = ["sentence-transformers", "openai"]}
 tokio = "1.44.2"
 once_cell = "1.21.3"
 futures-util = "0.3.31"
 futures = "0.3.31"
 derive_more = {version = "2.0.1", features = ["from"]}
-lance = "0.25.0"
+lance = { git = "https://github.com/lancedb/lance", tag = "v0.27.0-beta.3" }

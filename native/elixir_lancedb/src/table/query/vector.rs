@@ -8,7 +8,9 @@ use crate::{
 };
 use arrow_array::RecordBatch;
 use futures::TryStreamExt;
-use lancedb::query::{ExecutableQuery, Query, QueryBase, VectorQuery as LanceVectorQuery};
+use lancedb::query::{
+    ExecutableQuery, Query, QueryBase, QueryExecutionOptions, VectorQuery as LanceVectorQuery,
+};
 use rustler::{Decoder, NifResult, ResourceArc};
 use std::collections::HashMap;
 
@@ -49,8 +51,11 @@ pub fn hybrid_search(
             vector_query = vector_query.postfilter();
         }
 
-        let record_batch: Vec<RecordBatch> =
-            vector_query.execute_hybrid().await?.try_collect().await?;
+        let record_batch: Vec<RecordBatch> = vector_query
+            .execute_hybrid(QueryExecutionOptions::default())
+            .await?
+            .try_collect()
+            .await?;
 
         let results = from_arrow(record_batch)?;
 

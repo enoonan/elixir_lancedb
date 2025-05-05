@@ -149,6 +149,12 @@ defmodule ElixirNativeDB.Native.TableTest do
       refute results |> Enum.any?(&(&1["name"] in ["apple", "banana"]))
     end
 
+    test "it can delete all records", %{table: fruits} do
+      fruits |> Native.delete("true")
+      {:ok, results} = fruits |> Native.query()
+      assert results |> length() == 0
+    end
+
     test "it can work with URLs", %{conn: conn} do
       {:ok, urls} = conn |> Native.create_empty_table("urls", Schema.from([Field.int32("id"), Field.utf8("domain")]))
       {result, _} = urls |> Native.add([%{"id" => 1, "domain" => "https://candy-confetti.party"}])

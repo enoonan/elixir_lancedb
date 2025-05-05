@@ -9,6 +9,11 @@ use lance::dataset::{
     cleanup::RemovalStats as LanceRemovalStats,
     optimize::CompactionMetrics as LanceCompactionMetrics,
 };
+
+// use lance::dataset::{
+//     cleanup::RemovalStats as LanceRemovalStats,
+//     optimize::CompactionMetrics as LanceCompactionMetrics,
+// };
 use lancedb::table::{OptimizeAction as LanceOptimizeAction, OptimizeStats as LanceOptimizeStats};
 use rustler::{Decoder, NifMap, ResourceArc};
 
@@ -38,11 +43,19 @@ impl From<LanceOptimizeStats> for OptimizeStats {
     fn from(value: LanceOptimizeStats) -> Self {
         OptimizeStats {
             compaction: match value.compaction {
-                Some(compaction) => Some(CompactionMetrics::from(compaction)),
+                Some(compaction) => Some(CompactionMetrics {
+                    fragments_removed: compaction.fragments_removed,
+                    fragments_added: compaction.fragments_added,
+                    files_removed: compaction.files_removed,
+                    files_added: compaction.files_added,
+                }),
                 None => None,
             },
             prune: match value.prune {
-                Some(prune) => Some(RemovalStats::from(prune)),
+                Some(prune) => Some(RemovalStats {
+                    bytes_removed: prune.bytes_removed,
+                    old_versions: prune.old_versions,
+                }),
                 None => None,
             },
         }

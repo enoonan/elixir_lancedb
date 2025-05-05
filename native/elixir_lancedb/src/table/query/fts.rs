@@ -8,7 +8,7 @@ use crate::{
 use arrow_array::RecordBatch;
 use futures::TryStreamExt;
 use lancedb::{
-    index::scalar::FullTextSearchQuery as LanceFullTextSearchQuery,
+    index::scalar::{FtsQuery, FullTextSearchQuery as LanceFullTextSearchQuery, MatchQuery},
     query::{ExecutableQuery, QueryBase},
 };
 use rustler::{Decoder, NifResult, ResourceArc};
@@ -77,8 +77,10 @@ impl Decoder<'_> for FullTextSearchQuery {
 impl Into<LanceFullTextSearchQuery> for FullTextSearchQuery {
     fn into(self) -> LanceFullTextSearchQuery {
         LanceFullTextSearchQuery {
-            columns: self.columns,
-            query: self.query,
+            // columns: self.columns,
+            query: FtsQuery::Match(
+                MatchQuery::new(self.query).with_column(Some(self.columns[0].clone())),
+            ),
             limit: self.limit,
             wand_factor: self.wand_factor,
         }

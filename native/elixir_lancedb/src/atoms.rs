@@ -30,6 +30,7 @@ rustler::atoms! {
     lance_not_supported,
     lance_path,
     lance_source,
+    lance_timeout,
     lance_other,
 
     // Rustler-specific errors

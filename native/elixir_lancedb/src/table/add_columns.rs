@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
-use lance::dataset::NewColumnTransform as LanceNewColumnTransform;
+use lancedb::table::NewColumnTransform as LanceNewColumnTransform;
+// use lance::dataset::schema_evolution::NewColumnTransform as LanceNewColumnTransform;
 use rustler::{Decoder, ResourceArc};
 
 use crate::{

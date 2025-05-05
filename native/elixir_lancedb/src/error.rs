@@ -35,6 +35,7 @@ pub enum Error {
     LanceArrow { message: String },
     LanceNotSupported { message: String },
     LanceOther { message: String },
+    LanceTimeout { message: String },
 
     // Arrow Errors
     ArrowNotYetImplemented { message: String },
@@ -110,6 +111,7 @@ impl From<LanceError> for Error {
                 message: source.to_string(),
             },
             LanceError::NotSupported { message } => Error::LanceNotSupported { message },
+            LanceError::Timeout { message } => Error::LanceTimeout { message },
             LanceError::Other { message, source: _ } => Error::LanceOther { message: message },
         }
     }
@@ -220,6 +222,7 @@ impl Encoder for Error {
             Error::LanceNotSupported { message } => {
                 (atoms::lance_not_supported(), message.to_string())
             }
+            Error::LanceTimeout { message } => (atoms::lance_timeout(), message.to_string()),
             Error::LanceOther { message } => (atoms::lance_other(), message.to_string()),
 
             // Rustler

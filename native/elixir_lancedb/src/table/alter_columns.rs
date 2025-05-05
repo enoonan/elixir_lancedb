@@ -4,7 +4,7 @@ use crate::{
 };
 
 use super::{super::rustler_arrow::schema::field_type::FieldType, table_conn, TableResource};
-use lance::dataset::ColumnAlteration as LanceColumnAlteration;
+use lancedb::table::ColumnAlteration as LanceColumnAlteration;
 use rustler::{NifStruct, ResourceArc};
 
 #[rustler::nif(schedule = "DirtyCpu")]
