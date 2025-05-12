@@ -1,4 +1,5 @@
 defmodule ElixirLanceDB.Native do
+  alias ElixirLanceDB.Native.Schema.Infer
   alias ElixirLanceDB.Native.Schema.NewColumnTransform.AllNulls
   alias ElixirLanceDB.Native.Schema.ColumnAlteration
   alias ElixirLanceDB.Native.Table.OptimizeAction.All
@@ -33,6 +34,13 @@ defmodule ElixirLanceDB.Native do
 
   def create_table(conn, table_name, initial_data) do
     {:ok, schema} = initial_data |> Schema.infer()
+
+    initial_data =
+      case initial_data |> Infer.needs_cleaning?() do
+        true -> initial_data |> Infer.clean()
+        false -> initial_data
+      end
+
     create_table_with_data(conn, table_name, initial_data, schema)
   end
 
@@ -55,7 +63,17 @@ defmodule ElixirLanceDB.Native do
 
   def query(_table_ref, %QueryRequest{} \\ %QueryRequest{}), do: err()
 
-  def add(_table_ref, _records), do: err()
+  def add(table_ref, records) do
+    records =
+      case records |> Infer.needs_cleaning?() do
+        true -> records |> Infer.clean()
+        false -> records
+      end
+
+    add_records(table_ref, records)
+  end
+
+  def add_records(_table_ref, _records), do: err()
 
   def update(_table_ref, %UpdateConfig{} = _update_cfg), do: err()
 

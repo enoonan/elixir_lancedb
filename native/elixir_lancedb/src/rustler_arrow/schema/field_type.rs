@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use arrow_schema::{DataType as ArrowDataType, TimeUnit};
+use arrow_schema::DataType as ArrowDataType;
 use rustler::NifTaggedEnum;
 
 use super::child_field::ChildField;
@@ -12,7 +12,8 @@ pub enum FieldType {
     Float32,
     Int32,
     Int64,
-    Timestamp,
+    Date32,
+    Date64,
     List(ChildField),
     FixedSizeList(ChildField, i32),
 }
@@ -25,8 +26,8 @@ impl From<&ArrowDataType> for FieldType {
             ArrowDataType::Float32 => FieldType::Float32,
             ArrowDataType::Int32 => FieldType::Int32,
             ArrowDataType::Int64 => FieldType::Int64,
-            // Restrict to only milliseconds with +00:00tz for now
-            ArrowDataType::Timestamp(_unit, _tz) => FieldType::Timestamp,
+            ArrowDataType::Date64 => FieldType::Date64,
+            ArrowDataType::Date32 => FieldType::Date32,
             ArrowDataType::List(child_field) => FieldType::List(child_field.into()),
             ArrowDataType::FixedSizeList(child_field, dim) => {
                 FieldType::FixedSizeList(child_field.into(), *dim)
@@ -44,9 +45,8 @@ impl Into<ArrowDataType> for FieldType {
             FieldType::Float32 => ArrowDataType::Float32,
             FieldType::Int32 => ArrowDataType::Int32,
             FieldType::Int64 => ArrowDataType::Int64,
-            FieldType::Timestamp => {
-                ArrowDataType::Timestamp(TimeUnit::Millisecond, Some("+00:00".to_string().into()))
-            }
+            FieldType::Date64 => ArrowDataType::Date64,
+            FieldType::Date32 => ArrowDataType::Date32,
             FieldType::List(child_type) => ArrowDataType::List(Arc::new(child_type.into())),
             FieldType::FixedSizeList(child_type, dim) => {
                 ArrowDataType::FixedSizeList(Arc::new(child_type.into()), dim)

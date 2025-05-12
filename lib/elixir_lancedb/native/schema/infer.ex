@@ -11,10 +11,10 @@ defmodule ElixirLanceDB.Native.Schema.Infer do
   def type([hd | _]), do: {:list, hd |> type}
 
   # Datetimes
-  def type(%Date{} = _item), do: :date
-  def type(%Time{} = _item), do: :time
-  def type(%DateTime{time_zone: tz} = _item), do: {:datetime, :microsecond, tz}
-  def type(%NaiveDateTime{} = _item), do: {:naive_datetime, :microsecond}
+  def type(%Date{} = _item), do: :date32
+  def type(%Time{}), do: {:time32, :millisecond}
+  def type(%DateTime{} = _dt), do: :date64
+  def type(%NaiveDateTime{} = _item), do: :date64
 
   # Map
 
@@ -30,6 +30,52 @@ defmodule ElixirLanceDB.Native.Schema.Infer do
       end
 
     {:struct, Enum.sort(types)}
+  end
+
+  def needs_cleaning?(initial_data) do
+    initial_data
+    |> Enum.take(100)
+    |> Enum.any?(fn record ->
+      record
+      |> Map.to_list()
+      |> Enum.any?(fn {_k, v} ->
+        case v do
+          %Date{} -> true
+          %Time{} -> true
+          %DateTime{} -> true
+          %NaiveDateTime{} -> true
+          _ -> false
+        end
+      end)
+    end)
+  end
+
+  def clean(initial_data) do
+    initial_data
+    |> Enum.map(fn record ->
+      record
+      |> Map.to_list()
+      |> Enum.map(fn {k, val} ->
+        case val do
+          %Date{} = v ->
+            dt = DateTime.new!(v, Time.new!(0, 0, 0))
+            {k, dt.microsecond}
+
+          %Time{} = v ->
+            {k, v.microsecond * 1000}
+
+          %DateTime{} = v ->
+            {k, DateTime.to_unix(v, :millisecond)}
+
+          %NaiveDateTime{} = v ->
+            {k, DateTime.from_naive(v, "+00:00") |> DateTime.to_unix(:millisecond)}
+
+          _ ->
+            {k, val}
+        end
+      end)
+      |> Map.new()
+    end)
   end
 
   defp to_str_key(key) when is_binary(key), do: key

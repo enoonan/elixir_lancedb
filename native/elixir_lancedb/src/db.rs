@@ -99,6 +99,7 @@ fn create_table_with_data(
 ) -> Result<ResourceArc<TableResource>> {
     let arrow_schema: arrow_schema::Schema = erl_schema.into();
     let arc_schema = Arc::new(arrow_schema.clone());
+
     let columnar_data = term_to_arrow::to_arrow(erl_data, arrow_schema.clone())?;
     let batch = RecordBatchIterator::new(
         vec![RecordBatch::try_new(arc_schema.clone(), columnar_data)],

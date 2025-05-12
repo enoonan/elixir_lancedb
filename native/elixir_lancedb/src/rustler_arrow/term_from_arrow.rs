@@ -12,6 +12,7 @@ pub enum ReturnableTerm {
     Boolean(bool),
     Utf8(String),
     Int32(i32),
+    Int64(i64),
     Float32(f32),
     ListFloat32(Vec<f32>),
     ListInt32(Vec<i32>),
@@ -24,6 +25,7 @@ impl Encoder for ReturnableTerm {
             ReturnableTerm::Boolean(val) => val.encode(env),
             ReturnableTerm::Utf8(val) => val.encode(env),
             ReturnableTerm::Int32(val) => val.encode(env),
+            ReturnableTerm::Int64(val) => val.encode(env),
             ReturnableTerm::Float32(val) => val.encode(env),
             ReturnableTerm::ListFloat32(val) => val.encode(env),
             ReturnableTerm::ListInt32(val) => val.encode(env),
@@ -32,16 +34,14 @@ impl Encoder for ReturnableTerm {
     }
 }
 
-pub fn from_arrow(
-    results: Vec<RecordBatch>
-) -> Result<Vec<HashMap<String, ReturnableTerm>>> {
+pub fn from_arrow(results: Vec<RecordBatch>) -> Result<Vec<HashMap<String, ReturnableTerm>>> {
     let empty_recs: Vec<HashMap<String, ReturnableTerm>> = vec![];
     let records: Vec<HashMap<String, ReturnableTerm>> =
         results.into_iter().fold(empty_recs, |mut recs, batch| {
             let num_rows = batch.num_rows();
             let num_columns = batch.num_columns();
             let batch_schema = batch.schema();
-            
+
             for row_idx in 0..num_rows {
                 let mut record: HashMap<String, ReturnableTerm> = HashMap::new();
 
@@ -87,6 +87,26 @@ pub fn from_arrow(
                                 ReturnableTerm::Float32(value)
                             } else {
                                 ReturnableTerm::Float32(0.0)
+                            }
+                        }
+                        DataType::Date32 => {
+                            if let Some(date_array) =
+                                column.as_any().downcast_ref::<arrow_array::Date32Array>()
+                            {
+                                let value = date_array.value(row_idx);
+                                ReturnableTerm::Int32(value)
+                            } else {
+                                ReturnableTerm::Int32(0)
+                            }
+                        }
+                        DataType::Date64 => {
+                            if let Some(date_array) =
+                                column.as_any().downcast_ref::<arrow_array::Date64Array>()
+                            {
+                                let value = date_array.value(row_idx);
+                                ReturnableTerm::Int64(value)
+                            } else {
+                                ReturnableTerm::Int64(0)
                             }
                         }
                         DataType::List(field) => {

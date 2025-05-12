@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
-use arrow_schema::{DataType as ArrowDataType, Field as ArrowField, TimeUnit};
+use arrow_schema::{DataType as ArrowDataType, Field as ArrowField};
 use rustler::NifStruct;
 
 use super::field_type::FieldType;
 
-#[derive(NifStruct, Clone)]
+#[derive(NifStruct, Clone, Debug)]
 #[module = "ElixirLanceDB.Native.Schema.Field"]
 pub struct Field {
     pub name: String,
@@ -32,12 +32,8 @@ impl Into<ArrowField> for Field {
             FieldType::Float32 => ArrowField::new(self.name, ArrowDataType::Float32, self.nullable),
             FieldType::Int32 => ArrowField::new(self.name, ArrowDataType::Int32, self.nullable),
             FieldType::Int64 => ArrowField::new(self.name, ArrowDataType::Int64, self.nullable),
-            // Restrict to only milliseconds with +00:00tz for now
-            FieldType::Timestamp => ArrowField::new(
-                self.name,
-                ArrowDataType::Timestamp(TimeUnit::Millisecond, Some("+00:00".to_string().into())),
-                self.nullable,
-            ),
+            FieldType::Date64 => ArrowField::new(self.name, ArrowDataType::Date64, self.nullable),
+            FieldType::Date32 => ArrowField::new(self.name, ArrowDataType::Date32, self.nullable),
             FieldType::List(child) => ArrowField::new(
                 self.name,
                 ArrowDataType::List(Arc::new(child.into())),

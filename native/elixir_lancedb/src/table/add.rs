@@ -9,7 +9,7 @@ use rustler::{ResourceArc, Term};
 use super::{table_conn, TableResource};
 
 #[rustler::nif(schedule = "DirtyCpu")]
-pub fn add(table: ResourceArc<TableResource>, erl_data: Term) -> Result<()> {
+pub fn add_records(table: ResourceArc<TableResource>, erl_data: Term) -> Result<()> {
     // let arrow_schema = Arc::new(erl_schema.clone().into_arrow());
     let table = table_conn(table)?;
     get_runtime().block_on(async {

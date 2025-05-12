@@ -21,17 +21,18 @@ defmodule ElixirNativeDB.Native.InferTypeTest do
       date = Date.new!(2000, 1, 1)
       time = Time.new!(1, 1, 1)
 
-      assert Infer.type(date) == :date
-      assert Infer.type(time) == :time
-      {t, ms, _tz} = Infer.type(DateTime.new!(date, time))
-      assert {t, ms} == {:datetime, :microsecond}
-      assert Infer.type(NaiveDateTime.new!(date, time)) == {:naive_datetime, :microsecond}
+      assert Infer.type(date) == :date32
+      assert Infer.type(time) == {:time32, :millisecond}
+      assert Infer.type(DateTime.new!(date, time)) == :date64
+      assert Infer.type(NaiveDateTime.new!(date, time)) == :date64
     end
 
     test "it can infer maps" do
       result =
         Infer.type(%{
-          e: [%{foo: 3.12}],
+          g: DateTime.new!(Date.new!(2000, 1, 1), Time.new!(1, 1, 1)),
+          f: Date.new!(2000, 1, 1),
+          e: [%{foo: 3.12}, %{foo: 4.56}],
           d: "bar",
           c: %{key_str: "foooo"},
           b: 3,
@@ -45,7 +46,9 @@ defmodule ElixirNativeDB.Native.InferTypeTest do
                   {"b", :int32},
                   {"c", {:struct, [{"key_str", :utf8}]}},
                   {"d", :utf8},
-                  {"e", {:list, {:struct, [{"foo", :float32}]}}}
+                  {"e", {:list, {:struct, [{"foo", :float32}]}}},
+                  {"f", :date32},
+                  {"g", :date64}
                 ]}
     end
   end

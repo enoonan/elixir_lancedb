@@ -35,12 +35,15 @@ defmodule ElixirLanceDB.NativeTest do
           Field.utf8("test_utf8"),
           Field.float32("test_float32"),
           Field.list("test_list", Field.float32("test_child_float")),
-          Field.fixed_size_list("test_fixed_size_list", Field.utf8("test_child_utf8"), 384)
+          Field.fixed_size_list("test_fixed_size_list", Field.utf8("item"), 384),
+          Field.date64("created_at")
         ])
 
-      {:ok, _} = conn |> Native.create_empty_table("test_table", schema)
+      {:ok, tbl} = conn |> Native.create_empty_table("test_table", schema)
 
       assert {:ok, ["test_table"]} = conn |> Native.table_names()
+      {:ok, schema2} = tbl |> Native.schema()
+      assert schema == schema2
     end
 
     test "it creates a table from initial data", %{conn: conn} do

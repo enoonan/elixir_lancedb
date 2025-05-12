@@ -1,8 +1,8 @@
 use crate::error::{Error, Result};
 use arrow_array::{
     builder::{
-        ArrayBuilder, BooleanBuilder, FixedSizeListBuilder, Float32Builder, Int32Builder,
-        ListBuilder, StringBuilder,
+        ArrayBuilder, BooleanBuilder, Date32Builder, Date64Builder, FixedSizeListBuilder,
+        Float32Builder, Int32Builder, ListBuilder, StringBuilder,
     },
     ArrayRef,
 };
@@ -27,6 +27,8 @@ pub fn to_arrow(term: Term, schema: arrow_schema::Schema) -> Result<Vec<ArrayRef
                     DataType::Utf8 => Box::new(StringBuilder::new()),
                     DataType::Float32 => Box::new(Float32Builder::new()),
                     DataType::Int32 => Box::new(Int32Builder::new()),
+                    DataType::Date64 => Box::new(Date64Builder::new()),
+                    DataType::Date32 => Box::new(Date32Builder::new()),
                     DataType::List(child) => match child.data_type() {
                         DataType::Boolean => {
                             Box::new(ListBuilder::<BooleanBuilder>::new(BooleanBuilder::new()))
@@ -103,6 +105,22 @@ pub fn to_arrow(term: Term, schema: arrow_schema::Schema) -> Result<Vec<ArrayRef
                             {
                                 let the_float: f32 = val.decode()?;
                                 builder.append_value(the_float);
+                            }
+                        }
+                        DataType::Date64 => {
+                            if let Some(builder) =
+                                acc[idx].as_any_mut().downcast_mut::<Date64Builder>()
+                            {
+                                let the_date: i64 = val.decode()?;
+                                builder.append_value(the_date);
+                            }
+                        }
+                        DataType::Date32 => {
+                            if let Some(builder) =
+                                acc[idx].as_any_mut().downcast_mut::<Date32Builder>()
+                            {
+                                let the_date: i32 = val.decode()?;
+                                builder.append_value(the_date);
                             }
                         }
                         DataType::List(child) => match child.data_type() {

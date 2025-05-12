@@ -8,70 +8,56 @@ defmodule ElixirLanceDB.Native.Schema.Field do
           nullable: boolean()
         }
 
-  def from_inferred_type({name, {:list, child_type}}) do
+  def new(name, field_type, opts) do
     %__MODULE__{
       name: name,
-      field_type: {:list, from_inferred_type({"item", child_type})},
-      nullable: true
+      field_type: field_type,
+      nullable: Keyword.get(opts, :nullable, true)
     }
   end
 
+  def from_inferred_type({name, {:list, child_type}}) do
+    new(name, {:list, from_inferred_type({"item", child_type})}, nullable: true)
+  end
+
   def from_inferred_type({name, {:fixed_size_list, child_type, dimension}}) do
-    %__MODULE__{
-      name: name,
-      field_type: {:list, from_inferred_type({"item", child_type}), dimension},
-      nullable: true
-    }
+    new(name, {:list, from_inferred_type({"item", child_type}), dimension}, nullable: true)
   end
 
   def from_inferred_type({name, type})
       when is_binary(name) and (is_atom(type) or is_tuple(type)) do
-    %__MODULE__{
-      name: name,
-      field_type: type,
-      nullable: true
-    }
+    new(name, type, nullable: true)
   end
 
-  def utf8(name, nullable \\ true) do
-    %__MODULE__{
-      name: name,
-      field_type: :utf8,
-      nullable: nullable
-    }
+  def utf8(name, opts \\ []) do
+    new(name, :utf8, opts)
   end
 
-  def float32(name, nullable \\ true) do
-    %__MODULE__{
-      name: name,
-      field_type: :float32,
-      nullable: nullable
-    }
+  def float32(name, opts \\ []) do
+    new(name, :float32, opts)
   end
 
-  def int32(name, nullable \\ true) do
-    %__MODULE__{
-      name: name,
-      field_type: :int32,
-      nullable: nullable
-    }
+  def int32(name, opts \\ []) do
+    new(name, :int32, opts)
   end
 
-  def list(name, %__MODULE__{} = child, nullable \\ true) do
-    %__MODULE__{
-      name: name,
-      field_type: {:list, child},
-      nullable: nullable
-    }
+  def list(name, %__MODULE__{} = child, opts \\ []) do
+    new(name, {:list, child}, opts)
   end
 
-  def vector(name, %__MODULE__{} = child, dimension), do: fixed_size_list(name, child, dimension)
+  def vector(name, %__MODULE__{} = child, dimension, opts \\ []),
+    do: fixed_size_list(name, child, dimension, opts)
 
-  def fixed_size_list(name, %__MODULE__{} = child, dimension) when is_integer(dimension) do
-    %__MODULE__{
-      name: name,
-      field_type: {:fixed_size_list, child, dimension},
-      nullable: true
-    }
+  def fixed_size_list(name, %__MODULE__{} = child, dimension, opts \\ [])
+      when is_integer(dimension) do
+    new(name, {:fixed_size_list, child, dimension}, opts)
+  end
+
+  def date32(name, opts \\ []) do
+    new(name, :date32, opts)
+  end
+
+  def date64(name, opts \\ []) do
+    new(name, :date64, opts)
   end
 end

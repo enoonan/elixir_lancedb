@@ -25,6 +25,7 @@ defmodule ElixirNativeDB.Native.TableTest do
       assert schema ==
                Schema.from([
                  Field.float32("avg_weight_oz"),
+                 Field.date64("created_at"),
                  Field.int32("id"),
                  Field.utf8("name"),
                  Field.list("types", Field.utf8("item"))
@@ -43,7 +44,9 @@ defmodule ElixirNativeDB.Native.TableTest do
       fruits |> Native.drop_columns(["types", "avg_weight_oz"])
       {result, schema} = fruits |> Native.schema()
       assert result == :ok
-      assert schema == Schema.from([Field.int32("id"), Field.utf8("name")])
+
+      assert schema ==
+               Schema.from([Field.date64("created_at"), Field.int32("id"), Field.utf8("name")])
     end
 
     test "it can alter columns", %{table: fruits} do
@@ -82,7 +85,22 @@ defmodule ElixirNativeDB.Native.TableTest do
     test "it can scan for full table results", %{table: fruits} do
       {:ok, results} = fruits |> Native.query()
 
-      assert results == fruits()
+      assert results == [
+               %{
+                 "avg_weight_oz" => 5.363239765167236,
+                 "created_at" => 1_735_726_210_000,
+                 "id" => 123,
+                 "name" => "apple",
+                 "types" => ["red", "green"]
+               },
+               %{
+                 "avg_weight_oz" => 4.334249973297119,
+                 "created_at" => 946_688_461_000,
+                 "id" => 456,
+                 "name" => "banana",
+                 "types" => ["cavendish", "plantain"]
+               }
+             ]
     end
 
     test "it can filter results using SQL", %{table: fruits} do
@@ -156,10 +174,21 @@ defmodule ElixirNativeDB.Native.TableTest do
     end
 
     test "it can work with URLs", %{conn: conn} do
-      {:ok, urls} = conn |> Native.create_empty_table("urls", Schema.from([Field.int32("id"), Field.utf8("domain")]))
+      {:ok, urls} =
+        conn
+        |> Native.create_empty_table(
+          "urls",
+          Schema.from([Field.int32("id"), Field.utf8("domain")])
+        )
+
       {result, _} = urls |> Native.add([%{"id" => 1, "domain" => "https://candy-confetti.party"}])
       assert result == :ok
-      query = UpCfg.new() |> UpCfg.filter("id = 1") |> UpCfg.column("domain", "\"https://punch-and-pie.org\"")
+
+      query =
+        UpCfg.new()
+        |> UpCfg.filter("id = 1")
+        |> UpCfg.column("domain", "\"https://punch-and-pie.org\"")
+
       {result2, num_updated} = urls |> Native.update(query)
       assert result2 == :ok
       assert num_updated == 1
@@ -225,13 +254,15 @@ defmodule ElixirNativeDB.Native.TableTest do
         "id" => 123,
         "name" => "apple",
         "types" => ["red", "green"],
-        "avg_weight_oz" => 5.363239765167236
+        "avg_weight_oz" => 5.363239765167236,
+        "created_at" => DateTime.new!(Date.new!(2025, 1, 1), Time.new!(10, 10, 10))
       },
       %{
         "id" => 456,
         "name" => "banana",
         "types" => ["cavendish", "plantain"],
-        "avg_weight_oz" => 4.334249973297119
+        "avg_weight_oz" => 4.334249973297119,
+        "created_at" => DateTime.new!(Date.new!(2000, 1, 1), Time.new!(1, 1, 1))
       }
     ]
   end
@@ -242,13 +273,15 @@ defmodule ElixirNativeDB.Native.TableTest do
         "id" => 234,
         "name" => "grape",
         "types" => ["red", "green"],
-        "avg_weight_oz" => 6.345239765167236
+        "avg_weight_oz" => 6.345239765167236,
+        "created_at" => DateTime.new!(Date.new!(2000, 1, 1), Time.new!(1, 1, 1))
       },
       %{
         "id" => 567,
         "name" => "orange",
-        "types" => ["mandarine", "navel", "disappointing"],
-        "avg_weight_oz" => 7.338769973297119
+        "types" => ["mandarin", "navel"],
+        "avg_weight_oz" => 7.338769973297119,
+        "created_at" => DateTime.new!(Date.new!(2025, 1, 1), Time.new!(10, 10, 10))
       }
     ]
   end

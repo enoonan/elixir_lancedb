@@ -14,13 +14,6 @@ pub struct Schema {
     pub metadata: HashMap<String, String>,
 }
 
-// impl Schema {
-//     pub fn into_arrow(self) -> arrow_schema::Schema {
-//         let fields: Vec<ArrowField> = self.fields.iter().map(|f| f.clone().into()).collect();
-//         arrow_schema::Schema::new(fields)
-//     }
-// }
-
 impl Into<ArrowSchema> for Schema {
     fn into(self) -> ArrowSchema {
         let fields: Vec<ArrowField> = self.fields.iter().map(|f| f.clone().into()).collect();
