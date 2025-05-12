@@ -32,7 +32,6 @@ pub fn update(table: ResourceArc<TableResource>, update_config: UpdateConfig) ->
         };
 
         let update = update_config.columns.iter().fold(update, |update_acc, op| {
-            println!("{:?}", op);
             update_acc.column(&op.column, &op.operation)
         });
 

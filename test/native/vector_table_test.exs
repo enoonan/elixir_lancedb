@@ -37,7 +37,7 @@ defmodule ElixirLanceDB.Native.VectorTableTest do
 
       query =
         VQR.new(create_vec())
-        |> VQR.hybridize("here is a bunch of random text", columns: ["content"])
+        |> VQR.hybridize("here is a bunch of random text", "content")
 
       {:ok, result} = vectors |> Native.hybrid_search(query)
       assert result |> is_list()

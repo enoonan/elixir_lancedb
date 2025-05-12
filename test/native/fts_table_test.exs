@@ -23,7 +23,7 @@ defmodule ElixirLanceDB.Native.FtsTableTest do
 
     test "it can perform a full text search query", %{table: vectors} do
       vectors |> Native.create_index(["content"], Index.fts())
-      query = QueryRequest.new() |> QueryRequest.fts("row 56", columns: ["content"])
+      query = QueryRequest.new() |> QueryRequest.fts("row 56", "content")
       {:ok, result} = vectors |> Native.full_text_search(query)
       assert result |> is_list()
       [first | _] = result

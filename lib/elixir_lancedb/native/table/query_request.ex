@@ -44,7 +44,16 @@ defmodule ElixirLanceDB.Native.Table.QueryRequest do
     }
   end
 
-  def fts(%__MODULE__{} = request, query, opts \\ []) when is_binary(query) and is_list(opts) do
+  def fts(request, query, columns, opts \\ [])
+
+  def fts(request, query, columns, opts) when is_binary(columns) do
+    fts(request, query, [columns], opts)
+  end
+
+  def fts(%__MODULE__{} = request, query, columns, opts)
+      when is_binary(query) and is_list(opts) and is_list(columns) and length(columns) > 0 do
+    opts = opts |> Keyword.put(:columns, columns)
+
     %__MODULE__{
       request
       | full_text_search: FullTextSearchQueryRequest.new(query, opts)

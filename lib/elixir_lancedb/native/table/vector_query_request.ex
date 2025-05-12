@@ -64,10 +64,17 @@ defmodule ElixirLanceDB.Native.Table.VectorQueryRequest do
     }
   end
 
-  def hybridize(%__MODULE__{} = req, query, opts \\ []) do
+  def hybridize(req, query, columns, opts \\ [])
+
+  def hybridize(req, query, single_column, opts) when is_binary(single_column) do
+    hybridize(req, query, [single_column], opts)
+  end
+
+  def hybridize(%__MODULE__{} = req, query, columns, opts)
+      when is_list(columns) and length(columns) > 0 do
     %__MODULE__{
       req
-      | base: req.base |> QueryRequest.fts(query, opts)
+      | base: req.base |> QueryRequest.fts(query, columns, opts)
     }
   end
 end
