@@ -2,16 +2,13 @@ use crate::runtime::get_runtime;
 use crate::rustler_arrow::term_from_arrow::{from_arrow, ReturnableTerm};
 use crate::table::index::DistanceType;
 use crate::table::{table_conn, TableResource};
-use crate::{
-    atoms,
-    error::{Error, Result},
-};
+use crate::error::{Error, Result};
 use arrow_array::RecordBatch;
 use futures::TryStreamExt;
 use lancedb::query::{
     ExecutableQuery, Query, QueryBase, QueryExecutionOptions, VectorQuery as LanceVectorQuery,
 };
-use rustler::{Decoder, NifResult, ResourceArc};
+use rustler::{NifStruct, ResourceArc};
 use std::collections::HashMap;
 
 use super::plain::QueryRequest;
@@ -65,7 +62,8 @@ pub fn hybrid_search(
     Ok(results)
 }
 
-#[derive(Clone)]
+#[derive(NifStruct, Clone)]
+#[module = "ElixirLanceDB.Native.Table.VectorQueryRequest"]
 pub struct VectorQueryRequest {
     pub base: QueryRequest,
     pub postfilter: bool,
@@ -82,65 +80,6 @@ pub struct VectorQueryRequest {
     pub use_index: bool,
 }
 
-impl Decoder<'_> for VectorQueryRequest {
-    fn decode(term: rustler::Term<'_>) -> NifResult<Self> {
-        let base: QueryRequest = term.map_get(atoms::base())?.decode()?;
-
-        let postfilter: bool = term.map_get(atoms::postfilter())?.decode()?;
-
-        let column: Option<String> = term
-            .map_get(atoms::column())
-            .ok()
-            .and_then(|s| s.decode().ok());
-
-        let query_vector: Vec<f32> = term.map_get(atoms::query_vector())?.decode()?;
-
-        let nprobes: Option<usize> = term
-            .map_get(atoms::nprobes())
-            .ok()
-            .and_then(|s| s.decode().ok());
-
-        let lower_bound: Option<f32> = term
-            .map_get(atoms::lower_bound())
-            .ok()
-            .and_then(|s| s.decode().ok());
-
-        let upper_bound: Option<f32> = term
-            .map_get(atoms::upper_bound())
-            .ok()
-            .and_then(|s| s.decode().ok());
-
-        let ef: Option<usize> = term.map_get(atoms::ef()).ok().and_then(|s| s.decode().ok());
-
-        let refine_factor: Option<u32> = term
-            .map_get(atoms::refine_factor())
-            .ok()
-            .and_then(|s| s.decode().ok());
-
-        let distance_type: Option<DistanceType> = term
-            .map_get(atoms::distance_type())
-            .ok()
-            .and_then(|s| s.decode().ok());
-
-        let use_index: bool = term
-            .map_get(atoms::use_index())
-            .map_or(true, |val| val.decode().unwrap_or(true));
-
-        Ok(VectorQueryRequest {
-            base,
-            postfilter,
-            column,
-            query_vector,
-            nprobes,
-            lower_bound,
-            upper_bound,
-            ef,
-            refine_factor,
-            distance_type,
-            use_index,
-        })
-    }
-}
 impl VectorQueryRequest {
     pub fn apply_to(self, query: Query) -> Result<LanceVectorQuery> {
         let mut vector_query = query.nearest_to(self.query_vector)?;

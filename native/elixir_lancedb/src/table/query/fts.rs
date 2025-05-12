@@ -1,5 +1,4 @@
 use crate::{
-    atoms,
     error::{Error, Result},
     runtime::get_runtime,
     rustler_arrow::term_from_arrow::{from_arrow, ReturnableTerm},
@@ -11,7 +10,7 @@ use lancedb::{
     index::scalar::{FtsQuery, FullTextSearchQuery as LanceFullTextSearchQuery, MatchQuery},
     query::{ExecutableQuery, QueryBase},
 };
-use rustler::{Decoder, NifResult, ResourceArc};
+use rustler::{NifStruct, ResourceArc};
 use std::collections::HashMap;
 
 use super::plain::QueryRequest;
@@ -41,37 +40,13 @@ pub fn full_text_search(
     Ok(result)
 }
 
-#[derive(Clone, Debug)]
+#[derive(NifStruct, Clone, Debug)]
+#[module = "ElixirLanceDB.Native.Table.FullTextSearchQueryRequest"]
 pub struct FullTextSearchQuery {
     pub query: String,
     pub columns: Vec<String>,
     pub limit: Option<i64>,
     pub wand_factor: Option<f32>,
-}
-
-impl Decoder<'_> for FullTextSearchQuery {
-    fn decode(term: rustler::Term<'_>) -> NifResult<Self> {
-        let columns: Vec<String> = term.map_get(atoms::columns())?.decode()?;
-
-        let query: String = term.map_get(atoms::query())?.decode()?;
-
-        let limit: Option<i64> = term
-            .map_get(atoms::limit())
-            .ok()
-            .and_then(|s| s.decode().ok());
-
-        let wand_factor: Option<f32> = term
-            .map_get(atoms::wand_factor())
-            .ok()
-            .and_then(|s| s.decode().ok());
-
-        Ok(FullTextSearchQuery {
-            columns,
-            query,
-            limit,
-            wand_factor,
-        })
-    }
 }
 
 impl Into<LanceFullTextSearchQuery> for FullTextSearchQuery {

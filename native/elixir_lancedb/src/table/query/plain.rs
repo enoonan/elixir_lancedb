@@ -1,5 +1,4 @@
 use crate::{
-    atoms,
     error::Result,
     runtime::get_runtime,
     rustler_arrow::term_from_arrow::{from_arrow, ReturnableTerm},
@@ -8,7 +7,7 @@ use crate::{
 use arrow_array::RecordBatch;
 use futures::TryStreamExt;
 use lancedb::query::{ExecutableQuery, Query, QueryBase};
-use rustler::{Decoder, NifResult, ResourceArc, Term};
+use rustler::{NifStruct, ResourceArc};
 use std::{collections::HashMap, option::Option};
 
 use super::fts::FullTextSearchQuery;
@@ -29,52 +28,18 @@ fn query<'a>(
     Ok(result)
 }
 
-#[derive(Clone, Debug)]
+#[derive(NifStruct, Clone, Debug)]
+#[module = "ElixirLanceDB.Native.Table.QueryRequest"]
 pub struct QueryRequest {
     pub filter: Option<QueryFilter>,
     pub limit: Option<usize>,
     pub full_text_search: Option<FullTextSearchQuery>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(NifStruct, Clone, Debug)]
+#[module = "ElixirLanceDB.Native.Table.QueryFilter"]
 pub struct QueryFilter {
     pub sql: Option<String>,
-}
-
-impl Decoder<'_> for QueryFilter {
-    fn decode(term: Term) -> NifResult<Self> {
-        let sql: Option<String> = term
-            .map_get(atoms::sql())
-            .ok()
-            .and_then(|s| s.decode().ok());
-
-        Ok(QueryFilter { sql })
-    }
-}
-
-impl Decoder<'_> for QueryRequest {
-    fn decode(term: Term) -> NifResult<Self> {
-        let filter: Option<QueryFilter> = term
-            .map_get(atoms::filter())
-            .ok()
-            .and_then(|filter| filter.decode().ok());
-
-        let limit: Option<usize> = term
-            .map_get(atoms::limit())
-            .ok()
-            .and_then(|limit| limit.decode().ok().into());
-
-        let full_text_search: Option<FullTextSearchQuery> = term
-            .map_get(atoms::full_text_search())
-            .ok()
-            .and_then(|fts| fts.decode().ok().into());
-
-        Ok(QueryRequest {
-            filter,
-            limit,
-            full_text_search,
-        })
-    }
 }
 
 impl QueryRequest {
