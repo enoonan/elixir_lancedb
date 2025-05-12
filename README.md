@@ -38,7 +38,8 @@ The current focus of this project is to implement an Ecto Adapter so that it can
 ---
 
 Thanks to:
- * The folks on the LanceDB discord for guidance and encouraging emojis
+ * The good folks on the LanceDB discord for guidance and encouraging emojis
+ * The good folks on ElixirForum
  * Rustler!
  * Elixir Explorer
  * arrow-elixir
