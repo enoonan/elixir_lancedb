@@ -29,6 +29,10 @@ defmodule ElixirLanceDB.Native.Schema.Field do
     new(name, type, nullable: true)
   end
 
+  def boolean(name, opts \\ []) do
+    new(name, :boolean, opts)
+  end
+
   def utf8(name, opts \\ []) do
     new(name, :utf8, opts)
   end

@@ -27,6 +27,7 @@ defmodule ElixirNativeDB.Native.TableTest do
                  Field.float32("avg_weight_oz"),
                  Field.date64("created_at"),
                  Field.int32("id"),
+                 Field.boolean("is_spheroid"),
                  Field.utf8("name"),
                  Field.list("types", Field.utf8("item"))
                ])
@@ -46,7 +47,12 @@ defmodule ElixirNativeDB.Native.TableTest do
       assert result == :ok
 
       assert schema ==
-               Schema.from([Field.date64("created_at"), Field.int32("id"), Field.utf8("name")])
+               Schema.from([
+                 Field.date64("created_at"),
+                 Field.int32("id"),
+                 Field.boolean("is_spheroid"),
+                 Field.utf8("name")
+               ])
     end
 
     test "it can alter columns", %{table: fruits} do
@@ -91,14 +97,16 @@ defmodule ElixirNativeDB.Native.TableTest do
                  "created_at" => 1_735_726_210_000,
                  "id" => 123,
                  "name" => "apple",
-                 "types" => ["red", "green"]
+                 "types" => ["red", "green"],
+                 "is_spheroid" => true
                },
                %{
                  "avg_weight_oz" => 4.334249973297119,
                  "created_at" => 946_688_461_000,
                  "id" => 456,
                  "name" => "banana",
-                 "types" => ["cavendish", "plantain"]
+                 "types" => ["cavendish", "plantain"],
+                 "is_spheroid" => false
                }
              ]
     end
@@ -255,14 +263,16 @@ defmodule ElixirNativeDB.Native.TableTest do
         "name" => "apple",
         "types" => ["red", "green"],
         "avg_weight_oz" => 5.363239765167236,
-        "created_at" => DateTime.new!(Date.new!(2025, 1, 1), Time.new!(10, 10, 10))
+        "created_at" => DateTime.new!(Date.new!(2025, 1, 1), Time.new!(10, 10, 10)),
+        "is_spheroid" => true
       },
       %{
         "id" => 456,
         "name" => "banana",
         "types" => ["cavendish", "plantain"],
         "avg_weight_oz" => 4.334249973297119,
-        "created_at" => DateTime.new!(Date.new!(2000, 1, 1), Time.new!(1, 1, 1))
+        "created_at" => DateTime.new!(Date.new!(2000, 1, 1), Time.new!(1, 1, 1)),
+        "is_spheroid" => false
       }
     ]
   end
@@ -274,14 +284,16 @@ defmodule ElixirNativeDB.Native.TableTest do
         "name" => "grape",
         "types" => ["red", "green"],
         "avg_weight_oz" => 6.345239765167236,
-        "created_at" => DateTime.new!(Date.new!(2000, 1, 1), Time.new!(1, 1, 1))
+        "created_at" => DateTime.new!(Date.new!(2000, 1, 1), Time.new!(1, 1, 1)),
+        "is_spheroid" => true
       },
       %{
         "id" => 567,
         "name" => "orange",
         "types" => ["mandarin", "navel"],
         "avg_weight_oz" => 7.338769973297119,
-        "created_at" => DateTime.new!(Date.new!(2025, 1, 1), Time.new!(10, 10, 10))
+        "created_at" => DateTime.new!(Date.new!(2025, 1, 1), Time.new!(10, 10, 10)),
+        "is_spheroid" => true
       }
     ]
   end

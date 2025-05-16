@@ -4,6 +4,7 @@ defmodule ElixirLanceDB.Native.Schema.Infer do
   def type(field) when is_binary(field), do: :utf8
   def type(field) when is_integer(field), do: :int32
   def type(field) when is_float(field), do: :float32
+  def type(field) when is_boolean(field), do: :boolean
 
   # Lists
   def type([]), do: raise("Cannot infer field type of empty list")

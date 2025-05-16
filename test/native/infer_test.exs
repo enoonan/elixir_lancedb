@@ -4,6 +4,8 @@ defmodule ElixirNativeDB.Native.InferTypeTest do
 
   describe "Infer Type :: " do
     test "it can infer primitive types" do
+      assert Infer.type(true) == :boolean
+      assert Infer.type(false) == :boolean
       assert Infer.type(nil) == :null
       assert Infer.type("foo") == :utf8
       assert Infer.type(1) == :int32
