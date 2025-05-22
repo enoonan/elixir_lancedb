@@ -22,6 +22,7 @@ defmodule ElixirLanceDB.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:jason, "~> 1.4"},
       {:ecto_sql, "~> 3.12.1"},
       {:rustler, "~> 0.36.1", runtime: false}
       # {:dep_from_hexpm, "~> 0.3.0"},

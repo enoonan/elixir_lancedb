@@ -60,7 +60,7 @@ defmodule ElixirLanceDB.Native.Schema.Infer do
         case val do
           %Date{} = v ->
             dt = DateTime.new!(v, Time.new!(0, 0, 0))
-            {k, dt.microsecond}
+            {k, dt |> DateTime.to_unix(:millisecond)}
 
           %Time{} = v ->
             {k, v.microsecond * 1000}
