@@ -14,7 +14,15 @@ defmodule ElixirLanceDB.Native do
   }
 
   alias ElixirLanceDB.Native.Schema
-  use Rustler, otp_app: :elixir_lancedb, crate: "elixir_lancedb"
+  # use Rustler, otp_app: :elixir_lancedb, crate: "elixir_lancedb"
+
+  @version "0.1.1"
+  use RustlerPrecompiled,
+    otp_app: :elixir_lancedb,
+    crate: "elixir_lancedb",
+    base_url: "https://github.com/enoonan/elixir_lancedb/releases/download/v#{@version}",
+    version: @version,
+    force_build: true
 
   def connect(uri) when is_binary(uri), do: err()
 
